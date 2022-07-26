@@ -357,6 +357,29 @@ class SetCriterion(nn.Module):
         r3  = (b3 + sq3) / 2
         return min(r1, r2, r3)
 
+    def draw_msra_gaussian(self, heatmap, center, sigma):
+        tmp_size = sigma * 3
+        mu_x = int(center[0] + 0.5)
+        mu_y = int(center[1] + 0.5)
+        w, h = heatmap.shape[0], heatmap.shape[1]
+        ul = [int(mu_x - tmp_size), int(mu_y - tmp_size)]
+        br = [int(mu_x + tmp_size + 1), int(mu_y + tmp_size + 1)]
+        if ul[0] >= h or ul[1] >= w or br[0] < 0 or br[1] < 0:
+            return heatmap
+        size = 2 * tmp_size + 1
+        x = np.arange(0, size, 1, np.float32)
+        y = x[:, np.newaxis]
+        x0 = y0 = size // 2
+        g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+        g_x = max(0, -ul[0]), min(br[0], h) - ul[0]
+        g_y = max(0, -ul[1]), min(br[1], w) - ul[1]
+        img_x = max(0, ul[0]), min(br[0], h)
+        img_y = max(0, ul[1]), min(br[1], w)
+        heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]] = np.maximum(
+            heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]],
+            g[g_y[0]:g_y[1], g_x[0]:g_x[1]])
+        return heatmap
+
     def forward(self, outputs, targets):
         """ This performs the loss computation.
         Parameters:
@@ -375,18 +398,39 @@ class SetCriterion(nn.Module):
         # if is_dist_avail_and_initialized():
         #     torch.distributed.all_reduce(num_boxes)
         # num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
-        print(targets[0])
-        exit(0)
-        # bs, _, h, w = outputs['pred_hms'].shape
-        # hm = np.zeros((bs, 1, h, w), dtype=np.float32)
-        # radius = self.gaussian_radius((math.ceil(h), math.ceil(w)))
-        # radius = max(0, int(radius))
-        # for i in range(len(targets)):
-        #     target = targets[i]['boxes']
-        #     for j in range(target.size()[0]):
+        # print(targets[0])
+        # exit(0)
+        bs, _, h, w = outputs['pred_hms'].shape
+        # hm = [np.zeros((bs, 1, h, w), dtype=np.float32)]
+        hms = []
+        radius = self.gaussian_radius((math.ceil(h), math.ceil(w)))
+        radius = max(0, int(radius))
+        for i in range(len(targets)):
+            target = targets[i]['boxes']
+            hm = [np.zeros((h, w), dtype=np.float32)]
+            for j in range(target.size()[0]):
+                ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
+                ct_int = ct.astype(np.int32)
+                self.draw_gaussian(hm, ct_int, radius)
+            hms.append(hm)
+        hms = torch.stack(hms).unsqueeze(1)
 
 
-        # losses = {'loss_hm': self.crit(outputs['pred_hms'], hm)}
+        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
+        # if 'aux_outputs' in outputs:
+        #     for i, aux_outputs in enumerate(outputs['aux_outputs']):
+        #         indices = self.matcher(aux_outputs, targets)
+        #         for loss in self.losses:
+        #             if loss == 'masks':
+        #                 # Intermediate masks losses are too costly to compute, we ignore them.
+        #                 continue
+        #             kwargs = {}
+        #             if loss == 'labels':
+        #                 # Logging is enabled only for the last layer
+        #                 kwargs['log'] = False
+        #             l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_boxes, **kwargs)
+        #             l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
+        #             losses.update(l_dict)
         # # Compute all the requested losses
         # losses = {}
         # for loss in self.losses:
