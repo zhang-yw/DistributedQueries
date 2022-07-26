@@ -52,8 +52,8 @@ class DeformableDETR(nn.Module):
         self.num_queries = num_queries
         self.transformer = transformer
         hidden_dim = transformer.d_model
-        self.class_embed = nn.Linear(hidden_dim, num_classes)
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        # self.class_embed = nn.Linear(hidden_dim, num_classes)
+        # self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
         self.num_feature_levels = num_feature_levels
         # self.activation = F.relu
         if not two_stage:
@@ -85,33 +85,33 @@ class DeformableDETR(nn.Module):
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
 
-        prior_prob = 0.01
-        bias_value = -math.log((1 - prior_prob) / prior_prob)
-        self.class_embed.bias.data = torch.ones(num_classes) * bias_value
-        nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
-        nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
-        for proj in self.input_proj:
-            nn.init.xavier_uniform_(proj[0].weight, gain=1)
-            nn.init.constant_(proj[0].bias, 0)
+        # prior_prob = 0.01
+        # bias_value = -math.log((1 - prior_prob) / prior_prob)
+        # self.class_embed.bias.data = torch.ones(num_classes) * bias_value
+        # nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
+        # nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
+        # for proj in self.input_proj:
+        #     nn.init.xavier_uniform_(proj[0].weight, gain=1)
+        #     nn.init.constant_(proj[0].bias, 0)
 
         # if two-stage, the last class_embed and bbox_embed is for region proposal generation
-        num_pred = (transformer.decoder.num_layers + 1) if two_stage else transformer.decoder.num_layers
-        if with_box_refine:
-            self.class_embed = _get_clones(self.class_embed, num_pred)
-            self.bbox_embed = _get_clones(self.bbox_embed, num_pred)
-            nn.init.constant_(self.bbox_embed[0].layers[-1].bias.data[2:], -2.0)
-            # hack implementation for iterative bounding box refinement
-            self.transformer.decoder.bbox_embed = self.bbox_embed
-        else:
-            nn.init.constant_(self.bbox_embed.layers[-1].bias.data[2:], -2.0)
-            self.class_embed = nn.ModuleList([self.class_embed for _ in range(num_pred)])
-            self.bbox_embed = nn.ModuleList([self.bbox_embed for _ in range(num_pred)])
-            self.transformer.decoder.bbox_embed = None
-        if two_stage:
-            # hack implementation for two-stage
-            self.transformer.decoder.class_embed = self.class_embed
-            for box_embed in self.bbox_embed:
-                nn.init.constant_(box_embed.layers[-1].bias.data[2:], 0.0)
+        # num_pred = (transformer.decoder.num_layers + 1) if two_stage else transformer.decoder.num_layers
+        # if with_box_refine:
+        #     self.class_embed = _get_clones(self.class_embed, num_pred)
+        #     self.bbox_embed = _get_clones(self.bbox_embed, num_pred)
+        #     nn.init.constant_(self.bbox_embed[0].layers[-1].bias.data[2:], -2.0)
+        #     # hack implementation for iterative bounding box refinement
+        #     self.transformer.decoder.bbox_embed = self.bbox_embed
+        # else:
+        #     nn.init.constant_(self.bbox_embed.layers[-1].bias.data[2:], -2.0)
+        #     self.class_embed = nn.ModuleList([self.class_embed for _ in range(num_pred)])
+        #     self.bbox_embed = nn.ModuleList([self.bbox_embed for _ in range(num_pred)])
+        #     self.transformer.decoder.bbox_embed = None
+        # if two_stage:
+        #     # hack implementation for two-stage
+        #     self.transformer.decoder.class_embed = self.class_embed
+        #     for box_embed in self.bbox_embed:
+        #         nn.init.constant_(box_embed.layers[-1].bias.data[2:], 0.0)
 
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
@@ -172,32 +172,32 @@ class DeformableDETR(nn.Module):
             scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
             scores = scores.sigmoid()
             outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
-            outputs_class = self.class_embed[lvl](hs[lvl])
-            tmp = self.bbox_embed[lvl](hs[lvl])
+            # outputs_class = self.class_embed[lvl](hs[lvl])
+            # tmp = self.bbox_embed[lvl](hs[lvl])
             # if reference.shape[-1] == 4:
             #     tmp += reference
             # else:
             #     assert reference.shape[-1] == 2
             #     tmp[..., :2] += reference
-            outputs_coord = tmp.sigmoid()
-            outputs_classes.append(outputs_class)
-            outputs_coords.append(outputs_coord)
-        outputs_class = torch.stack(outputs_classes)
-        outputs_coord = torch.stack(outputs_coords)
+        #     outputs_coord = tmp.sigmoid()
+        #     outputs_classes.append(outputs_class)
+        #     outputs_coords.append(outputs_coord)
+        # outputs_class = torch.stack(outputs_classes)
+        # outputs_coord = torch.stack(outputs_coords)
         outputs_hms = torch.stack(outputs_hms)
 
-        out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1], 'pred_hms': outputs_hms[-1]}
+        out = {'pred_hms': outputs_hms[-1]}
         if self.aux_loss:
-            out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord, outputs_hms)
+            out['aux_outputs'] = self._set_aux_loss(outputs_hms)
         return out
 
     @torch.jit.unused
-    def _set_aux_loss(self, outputs_class, outputs_coord, outputs_hms):
+    def _set_aux_loss(self, outputs_hms):
         # this is a workaround to make torchscript happy, as torchscript
         # doesn't support dictionary with non-homogeneous values, such
         # as a dict having both a Tensor and a list.
-        return [{'pred_logits': a, 'pred_boxes': b, 'pred_hms': c}
-                for a, b, c in zip(outputs_class[:-1], outputs_coord[:-1], outputs_hms[:-1])]
+        return [{'pred_hms': c}
+                for c in zip(outputs_hms[:-1])]
 
 
 class SetCriterion(nn.Module):
