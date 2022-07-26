@@ -416,7 +416,7 @@ class SetCriterion(nn.Module):
         hms = torch.stack(hms).unsqueeze(1)
 
 
-        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
+        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms, reduction='none')}
         # if 'aux_outputs' in outputs:
         #     for i, aux_outputs in enumerate(outputs['aux_outputs']):
         #         indices = self.matcher(aux_outputs, targets)
