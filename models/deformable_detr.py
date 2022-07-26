@@ -401,13 +401,13 @@ class SetCriterion(nn.Module):
         # print(targets[0])
         # exit(0)
         bs, _, h, w = outputs['pred_hms'].shape
-        # hm = [np.zeros((bs, 1, h, w), dtype=np.float32)]
+        # hm = [torch.zeros((bs, 1, h, w), dtype=np.float32)]
         hms = []
         radius = self.gaussian_radius((math.ceil(h), math.ceil(w)))
         radius = max(0, int(radius))
         for i in range(len(targets)):
             target = targets[i]['boxes']
-            hm = np.zeros((h, w), dtype=np.float32)
+            hm = torch.zeros((h, w), dtype=np.float32)
             for j in range(target.size()[0]):
                 ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
                 ct_int = ct.astype(np.int32)
