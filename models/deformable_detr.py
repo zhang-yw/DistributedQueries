@@ -197,7 +197,7 @@ class DeformableDETR(nn.Module):
         # doesn't support dictionary with non-homogeneous values, such
         # as a dict having both a Tensor and a list.
         return [{'pred_hms': c}
-                for c in zip(outputs_hms[:-1])]
+                for c in outputs_hms[:-1]]
 
 
 class SetCriterion(nn.Module):
