@@ -464,8 +464,6 @@ class SetCriterion(nn.Module):
                 ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
                 ct_int = ct.astype(np.int32)
                 self.draw_umich_gaussian(hm, ct_int, radius)
-                print(hm[ct_int[1], ct_int[0]])
-                exit(0)
             hms.append(hm)
         device = outputs['pred_hms'].device
         hms = torch.stack(hms).unsqueeze(1).to(device)
