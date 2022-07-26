@@ -392,8 +392,6 @@ class SetCriterion(nn.Module):
         diameter = 2 * radius + 1
         gaussian = self.gaussian2D((diameter, diameter), sigma=diameter / 6)
         gaussian = torch.from_numpy(gaussian)
-        print(gaussian)
-        exit(0)
         x, y = int(center[0]), int(center[1])
 
         height, width = heatmap.shape[0:2]
