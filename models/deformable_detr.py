@@ -413,10 +413,11 @@ class SetCriterion(nn.Module):
                 ct_int = ct.astype(np.int32)
                 self.draw_gaussian(hm, ct_int, radius)
             hms.append(hm)
-        hms = torch.stack(hms).unsqueeze(1)
+        device = outputs['pred_hms'].device
+        hms = torch.stack(hms).unsqueeze(1).to(device)
 
 
-        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms, reduction='none')}
+        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
         # if 'aux_outputs' in outputs:
         #     for i, aux_outputs in enumerate(outputs['aux_outputs']):
         #         indices = self.matcher(aux_outputs, targets)
