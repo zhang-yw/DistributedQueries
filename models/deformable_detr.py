@@ -561,7 +561,7 @@ def build(args):
         weight_dict.update(aux_weight_dict)
 
     # losses = ['labels', 'boxes', 'cardinality']
-    losses = ['hms']
+    losses = ['loss_hm']
     # if args.masks:
     #     losses += ["masks"]
     # num_classes, matcher, weight_dict, losses, focal_alpha=0.25
