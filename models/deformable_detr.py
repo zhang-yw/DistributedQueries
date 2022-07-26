@@ -402,7 +402,7 @@ class SetCriterion(nn.Module):
         masked_heatmap  = heatmap[y - top:y + bottom, x - left:x + right]
         masked_gaussian = gaussian[radius - top:radius + bottom, radius - left:radius + right]
         if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0: # TODO debug
-            np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
+            torch.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
         return heatmap
 
     def _neg_loss(self, pred, gt):
@@ -464,10 +464,12 @@ class SetCriterion(nn.Module):
                 ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
                 ct_int = ct.astype(np.int32)
                 self.draw_umich_gaussian(hm, ct_int, radius)
+                print(hm)
+                exit(0)
             hms.append(hm)
         device = outputs['pred_hms'].device
         hms = torch.stack(hms).unsqueeze(1).to(device)
-        hms = hms.transpose(2,3)
+        # hms = hms.transpose(2,3)
 
 
         losses = {'loss_hm': self._neg_loss(outputs['pred_hms'], hms)}
