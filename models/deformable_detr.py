@@ -357,7 +357,7 @@ class SetCriterion(nn.Module):
         r3  = (b3 + sq3) / 2
         return min(r1, r2, r3)
 
-    def draw_msra_gaussian(self, heatmap, center, sigma):
+    def draw_gaussian(self, heatmap, center, sigma):
         tmp_size = sigma * 3
         mu_x = int(center[0] + 0.5)
         mu_y = int(center[1] + 0.5)
