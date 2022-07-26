@@ -310,7 +310,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         # cross attention
         q_ca = self.with_pos_embed(tgt, query_pos)
         k_ca = self.with_pos_embed(src, pos)
-        tgt2 = self.multihead_attn(query=q_ca,
+        tgt2 = self.cross_attn(query=q_ca,
                             key=k_ca,
                             value=src, 
                             key_padding_mask=src_padding_mask)[0]
