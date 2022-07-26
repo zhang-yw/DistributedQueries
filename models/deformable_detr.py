@@ -221,7 +221,7 @@ class SetCriterion(nn.Module):
         self.weight_dict = weight_dict
         self.losses = losses
         self.focal_alpha = focal_alpha
-        self.crit = torch.nn.MSELoss()
+        # self.crit = torch.nn.MSELoss()
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
         """Classification loss (NLL)
@@ -357,28 +357,80 @@ class SetCriterion(nn.Module):
         r3  = (b3 + sq3) / 2
         return min(r1, r2, r3)
 
-    def draw_gaussian(self, heatmap, center, sigma):
-        tmp_size = sigma * 3
-        mu_x = int(center[0] + 0.5)
-        mu_y = int(center[1] + 0.5)
-        w, h = heatmap.shape[0], heatmap.shape[1]
-        ul = [int(mu_x - tmp_size), int(mu_y - tmp_size)]
-        br = [int(mu_x + tmp_size + 1), int(mu_y + tmp_size + 1)]
-        if ul[0] >= h or ul[1] >= w or br[0] < 0 or br[1] < 0:
-            return heatmap
-        size = 2 * tmp_size + 1
-        x = np.arange(0, size, 1, np.float32)
-        y = x[:, np.newaxis]
-        x0 = y0 = size // 2
-        g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
-        g_x = max(0, -ul[0]), min(br[0], h) - ul[0]
-        g_y = max(0, -ul[1]), min(br[1], w) - ul[1]
-        img_x = max(0, ul[0]), min(br[0], h)
-        img_y = max(0, ul[1]), min(br[1], w)
-        heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]] = np.maximum(
-            heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]],
-            g[g_y[0]:g_y[1], g_x[0]:g_x[1]])
+    # def draw_gaussian(self, heatmap, center, sigma):
+    #     tmp_size = sigma * 3
+    #     mu_x = int(center[0] + 0.5)
+    #     mu_y = int(center[1] + 0.5)
+    #     w, h = heatmap.shape[0], heatmap.shape[1]
+    #     ul = [int(mu_x - tmp_size), int(mu_y - tmp_size)]
+    #     br = [int(mu_x + tmp_size + 1), int(mu_y + tmp_size + 1)]
+    #     if ul[0] >= h or ul[1] >= w or br[0] < 0 or br[1] < 0:
+    #         return heatmap
+    #     size = 2 * tmp_size + 1
+    #     x = np.arange(0, size, 1, np.float32)
+    #     y = x[:, np.newaxis]
+    #     x0 = y0 = size // 2
+    #     g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+    #     g_x = max(0, -ul[0]), min(br[0], h) - ul[0]
+    #     g_y = max(0, -ul[1]), min(br[1], w) - ul[1]
+    #     img_x = max(0, ul[0]), min(br[0], h)
+    #     img_y = max(0, ul[1]), min(br[1], w)
+    #     heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]] = np.maximum(
+    #         heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1]],
+    #         g[g_y[0]:g_y[1], g_x[0]:g_x[1]])
+    #     return heatmap
+
+    def gaussian2D(self, shape, sigma=1):
+        m, n = [(ss - 1.) / 2. for ss in shape]
+        y, x = np.ogrid[-m:m+1,-n:n+1]
+
+        h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+        h[h < np.finfo(h.dtype).eps * h.max()] = 0
+        return h
+
+    def draw_umich_gaussian(self, heatmap, center, radius, k=1):
+        diameter = 2 * radius + 1
+        gaussian = self.gaussian2D((diameter, diameter), sigma=diameter / 6)
+        
+        x, y = int(center[0]), int(center[1])
+
+        height, width = heatmap.shape[0:2]
+            
+        left, right = min(x, radius), min(width - x, radius + 1)
+        top, bottom = min(y, radius), min(height - y, radius + 1)
+
+        masked_heatmap  = heatmap[y - top:y + bottom, x - left:x + right]
+        masked_gaussian = gaussian[radius - top:radius + bottom, radius - left:radius + right]
+        if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0: # TODO debug
+            np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
         return heatmap
+
+    def _neg_loss(self, pred, gt):
+        ''' Modified focal loss. Exactly the same as CornerNet.
+            Runs faster and costs a little bit more memory
+            Arguments:
+            pred (batch x c x h x w)
+            gt_regr (batch x c x h x w)
+        '''
+        pos_inds = gt.eq(1).float()
+        neg_inds = gt.lt(1).float()
+
+        neg_weights = torch.pow(1 - gt, 4)
+
+        loss = 0
+
+        pos_loss = torch.log(pred) * torch.pow(1 - pred, 2) * pos_inds
+        neg_loss = torch.log(1 - pred) * torch.pow(pred, 2) * neg_weights * neg_inds
+
+        num_pos  = pos_inds.float().sum()
+        pos_loss = pos_loss.sum()
+        neg_loss = neg_loss.sum()
+
+        if num_pos == 0:
+            loss = loss - neg_loss
+        else:
+            loss = loss - (pos_loss + neg_loss) / num_pos
+        return loss
 
     def forward(self, outputs, targets):
         """ This performs the loss computation.
@@ -411,21 +463,21 @@ class SetCriterion(nn.Module):
             for j in range(target.size()[0]):
                 ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
                 ct_int = ct.astype(np.int32)
-                self.draw_gaussian(hm, ct_int, radius)
+                self.draw_umich_gaussian(hm, ct_int, radius)
             hms.append(hm)
         device = outputs['pred_hms'].device
         hms = torch.stack(hms).unsqueeze(1).to(device)
         hms = hms.transpose(2,3)
 
 
-        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
+        losses = {'loss_hm': self._neg_loss(outputs['pred_hms'], hms)}
         # print(losses)
         # print("keu")
         # exit(0)
         if 'aux_outputs' in outputs:
             for i, aux_outputs in enumerate(outputs['aux_outputs']):
                 # indices = self.matcher(aux_outputs, targets)
-                l_dict = {'loss_hm': self.crit(aux_outputs['pred_hms'], hms)}
+                l_dict = {'loss_hm': self._neg_loss(aux_outputs['pred_hms'], hms)}
                 l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                 losses.update(l_dict)
         # # Compute all the requested losses
