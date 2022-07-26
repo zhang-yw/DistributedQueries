@@ -413,8 +413,6 @@ class SetCriterion(nn.Module):
                 ct_int = ct.astype(np.int32)
                 self.draw_gaussian(hm, ct_int, radius)
             hms.append(hm)
-            print(hm)
-            exit(0)
         device = outputs['pred_hms'].device
         hms = torch.stack(hms).unsqueeze(1).to(device)
         hms = hms.transpose(2,3)
