@@ -419,6 +419,7 @@ class SetCriterion(nn.Module):
 
         losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
         print(losses)
+        print("keu")
         exit(0)
         # if 'aux_outputs' in outputs:
         #     for i, aux_outputs in enumerate(outputs['aux_outputs']):
