@@ -459,7 +459,7 @@ class SetCriterion(nn.Module):
         radius = max(0, int(radius))
         for i in range(len(targets)):
             target = targets[i]['boxes']
-            hm = torch.zeros((w, h))
+            hm = torch.zeros((h, w))
             for j in range(target.size()[0]):
                 ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
                 ct_int = ct.astype(np.int32)
