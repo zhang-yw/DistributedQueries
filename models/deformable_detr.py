@@ -54,7 +54,7 @@ class DeformableDETR(nn.Module):
         self.class_embed = nn.Linear(hidden_dim, num_classes)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
         self.num_feature_levels = num_feature_levels
-        self.activation = F.relu
+        # self.activation = F.relu
         if not two_stage:
             self.query_embed = nn.Embedding(num_queries, hidden_dim*2)
         if num_feature_levels > 1:
@@ -167,7 +167,7 @@ class DeformableDETR(nn.Module):
             #     reference = inter_references[lvl - 1]
             # reference = inverse_sigmoid(reference)
             scores = torch.bmm(hs[lvl], src_flatten.transpose(1, 2))
-            scores = self.activation(scores)
+            scores = scores.sigmoid()
             outputs_class = self.class_embed[lvl](hs[lvl])
             tmp = self.bbox_embed[lvl](hs[lvl])
             # if reference.shape[-1] == 4:
