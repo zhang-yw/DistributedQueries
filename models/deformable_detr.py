@@ -84,7 +84,8 @@ class DeformableDETR(nn.Module):
         self.aux_loss = aux_loss
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
-        self.linear = nn.Linear(hidden_dim, 1)
+        self.linear1 = nn.Linear(hidden_dim, hidden_dim)
+        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
 
         # prior_prob = 0.01
         # bias_value = -math.log((1 - prior_prob) / prior_prob)
@@ -158,29 +159,23 @@ class DeformableDETR(nn.Module):
         if not self.two_stage:
             query_embeds = self.query_embed.weight
         # hs, init_reference, inter_references, enc_outputs_class, enc_outputs_coord_unact = self.transformer(srcs, masks, pos, query_embeds)
-        memory = self.transformer(srcs, masks, pos, query_embeds)
+        hs, memory = self.transformer(srcs, masks, pos, query_embeds)
 
         outputs_classes = []
         outputs_coords = []
         outputs_hms = []
         bs, c, h, w = srcs[0].shape
-        # for lvl in range(hs.shape[0]):
+        for lvl in range(hs.shape[0]):
             # if lvl == 0:
             #     reference = init_reference
             # else:
             #     reference = inter_references[lvl - 1]
             # reference = inverse_sigmoid(reference)
-
-
-            # scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
-            # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
-        scores = self.linear(memory)
-        scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
-        outputs_hms.append(scores.reshape(bs, 1, h, w))
-
-
-
+            scroes = self.linear1(hs[lvl])
+            memory_project = self.linear2(memory)
+            scores = torch.bmm(scroes, memory_project.transpose(1, 2))
+            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+            outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
             # if reference.shape[-1] == 4:
