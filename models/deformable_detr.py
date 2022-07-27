@@ -164,7 +164,7 @@ class DeformableDETR(nn.Module):
         outputs_coords = []
         outputs_hms = []
         bs, c, h, w = srcs[0].shape
-        for lvl in range(hs.shape[0]):
+        # for lvl in range(hs.shape[0]):
             # if lvl == 0:
             #     reference = init_reference
             # else:
@@ -175,9 +175,9 @@ class DeformableDETR(nn.Module):
             # scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
             # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
             # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
-            scores = self.linear(memory)
-            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
-            outputs_hms.append(scores.reshape(bs, 1, h, w))
+        scores = self.linear(memory)
+        scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+        outputs_hms.append(scores.reshape(bs, 1, h, w))
 
 
 
