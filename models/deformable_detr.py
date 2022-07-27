@@ -482,6 +482,7 @@ class SetCriterion(nn.Module):
         if 'aux_outputs' in outputs:
             for i, aux_outputs in enumerate(outputs['aux_outputs']):
                 # indices = self.matcher(aux_outputs, targets)
+                aux_outputs['pred_hms'] = self._sigmoid(aux_outputs['pred_hms'])
                 l_dict = {'loss_hm': self._neg_loss(aux_outputs['pred_hms'], hms)}
                 l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                 losses.update(l_dict)
