@@ -221,7 +221,7 @@ class SetCriterion(nn.Module):
         self.weight_dict = weight_dict
         self.losses = losses
         self.focal_alpha = focal_alpha
-        self.crit = torch.nn.MSELoss()
+        # self.crit = torch.nn.MSELoss()
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
         """Classification loss (NLL)
@@ -461,9 +461,7 @@ class SetCriterion(nn.Module):
             target = targets[i]['boxes']
             hm = torch.zeros((h, w))
             for j in range(target.size()[0]):
-                ct = np.array([target[j][0]*w, target[j][1]]*h, dtype=np.float32)
-                print(ct.shape)
-                exit(0)
+                ct = np.array([target[j][0]*w, target[j][1]*h], dtype=np.float32)
                 ct_int = ct.astype(np.int32)
                 self.draw_umich_gaussian(hm, ct_int, radius)
             hms.append(hm)
@@ -472,14 +470,14 @@ class SetCriterion(nn.Module):
         # hms = hms.transpose(2,3)
 
 
-        losses = {'loss_hm': self.crit(outputs['pred_hms'], hms)}
+        losses = {'loss_hm': self._neg_loss(outputs['pred_hms'], hms)}
         # print(losses)
         # print("keu")
         # exit(0)
         if 'aux_outputs' in outputs:
             for i, aux_outputs in enumerate(outputs['aux_outputs']):
                 # indices = self.matcher(aux_outputs, targets)
-                l_dict = {'loss_hm': self.crit(aux_outputs['pred_hms'], hms)}
+                l_dict = {'loss_hm': self._neg_loss(aux_outputs['pred_hms'], hms)}
                 l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                 losses.update(l_dict)
         # # Compute all the requested losses
