@@ -453,7 +453,7 @@ class SetCriterion(nn.Module):
         # print(targets[0])
         # exit(0)
         bs, _, h, w = outputs['pred_hms'].shape
-        print(outputs['pred_hms'].shape)
+        print(targets[0]['boxes'])
         exit(0)
         # hm = [torch.zeros((bs, 1, h, w), dtype=np.float32)]
         hms = []
