@@ -176,6 +176,7 @@ class DeformableDETR(nn.Module):
             # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
             # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
             scores = self.linear(memory)
+            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
             outputs_hms.append(scores.reshape(bs, 1, h, w))
 
 
