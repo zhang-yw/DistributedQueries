@@ -431,13 +431,15 @@ class SetCriterion(nn.Module):
         neg_loss = torch.log(1 - pred) * torch.pow(pred, 2) * neg_weights * neg_inds
 
         num_pos  = pos_inds.float().sum()
+        num_neg  = neg_inds.float().sum()
         pos_loss = pos_loss.sum()
         neg_loss = neg_loss.sum()
 
         if num_pos == 0:
             loss = loss - neg_loss
         else:
-            loss = loss - (pos_loss + neg_loss) / num_pos
+            # loss = loss - (pos_loss + neg_loss) / num_pos
+            loss = loss - (pos_loss / num_pos + neg_loss / num_neg)
         return loss
 
     def _sigmoid(self, x):
