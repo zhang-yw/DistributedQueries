@@ -84,6 +84,7 @@ class DeformableDETR(nn.Module):
         self.aux_loss = aux_loss
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
+        self.linear = nn.Linear(hidden_dim, 1)
 
         # prior_prob = 0.01
         # bias_value = -math.log((1 - prior_prob) / prior_prob)
@@ -169,9 +170,16 @@ class DeformableDETR(nn.Module):
             # else:
             #     reference = inter_references[lvl - 1]
             # reference = inverse_sigmoid(reference)
-            scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
-            outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
+
+
+            # scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
+            # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+            # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
+            scores = self.linear(memory)
+            outputs_hms.append(scores.reshape(bs, 1, h, w))
+
+
+
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
             # if reference.shape[-1] == 4:
