@@ -170,7 +170,7 @@ class DeformableDETR(nn.Module):
             #     reference = inter_references[lvl - 1]
             # reference = inverse_sigmoid(reference)
             scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            scores = scores.sigmoid()
+            # scores = scores.sigmoid()
             outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
@@ -432,6 +432,10 @@ class SetCriterion(nn.Module):
             loss = loss - (pos_loss + neg_loss) / num_pos
         return loss
 
+    def _sigmoid(self, x):
+        y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
+        return y
+
     def forward(self, outputs, targets):
         """ This performs the loss computation.
         Parameters:
@@ -452,6 +456,7 @@ class SetCriterion(nn.Module):
         # num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
         # print(targets[0])
         # exit(0)
+        outputs['pred_hms'] = self._sigmoid(outputs['pred_hms'])
         bs, _, h, w = outputs['pred_hms'].shape
         # hm = [torch.zeros((bs, 1, h, w), dtype=np.float32)]
         hms = []
