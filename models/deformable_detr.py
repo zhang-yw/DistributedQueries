@@ -453,6 +453,8 @@ class SetCriterion(nn.Module):
         # print(targets[0])
         # exit(0)
         bs, _, h, w = outputs['pred_hms'].shape
+        print(outputs['pred_hms'].shape)
+        exit(0)
         # hm = [torch.zeros((bs, 1, h, w), dtype=np.float32)]
         hms = []
         radius = self.gaussian_radius((math.ceil(h), math.ceil(w)))
