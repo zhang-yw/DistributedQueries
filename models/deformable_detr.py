@@ -170,7 +170,7 @@ class DeformableDETR(nn.Module):
             #     reference = inter_references[lvl - 1]
             # reference = inverse_sigmoid(reference)
             scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            scores = self._sigmoid(scores)
+            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
             outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
