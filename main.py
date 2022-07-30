@@ -201,8 +201,6 @@ def main(args):
             "lr": args.lr * args.lr_linear_proj_mult,
         }
     ]
-    print(param_dicts)
-    exit(0)
     if args.sgd:
         optimizer = torch.optim.SGD(param_dicts, lr=args.lr, momentum=0.9,
                                     weight_decay=args.weight_decay)
@@ -242,6 +240,9 @@ def main(args):
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
             import copy
             p_groups = copy.deepcopy(optimizer.param_groups)
+            print(optimizer.param_groups)
+            print(checkpoint['optimizer'].param_groups)
+            exit(0)
             optimizer.load_state_dict(checkpoint['optimizer'])
             for pg, pg_old in zip(optimizer.param_groups, p_groups):
                 pg['lr'] = pg_old['lr']
