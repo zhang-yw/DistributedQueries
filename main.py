@@ -201,6 +201,8 @@ def main(args):
             "lr": args.lr * args.lr_linear_proj_mult,
         }
     ]
+    print(param_dicts)
+    exit(0)
     if args.sgd:
         optimizer = torch.optim.SGD(param_dicts, lr=args.lr, momentum=0.9,
                                     weight_decay=args.weight_decay)
