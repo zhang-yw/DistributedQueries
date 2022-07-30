@@ -240,13 +240,13 @@ def main(args):
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
             import copy
             p_groups = copy.deepcopy(optimizer.param_groups)
-            groups = optimizer.param_groups
-            saved_groups = checkpoint['optimizer']['param_groups']
-            param_lens = (len(g['params']) for g in groups)
-            saved_lens = (len(g['params']) for g in saved_groups)
-            print(param_lens)
-            print(saved_lens)
-            exit(0)
+            # groups = optimizer.param_groups
+            # saved_groups = checkpoint['optimizer']['param_groups']
+            # param_lens = (len(g['params']) for g in groups)
+            # saved_lens = (len(g['params']) for g in saved_groups)
+            # print(param_lens)
+            # print(saved_lens)
+            # exit(0)
             optimizer.load_state_dict(checkpoint['optimizer'])
             for pg, pg_old in zip(optimizer.param_groups, p_groups):
                 pg['lr'] = pg_old['lr']
