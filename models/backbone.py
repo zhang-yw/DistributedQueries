@@ -77,12 +77,12 @@ class BackboneBase(nn.Module):
             self.strides = [8, 16, 32]
             self.num_channels = [512, 1024, 2048]
         else:
-            # return_layers = {'layer4': "0"}
-            # self.strides = [32]
-            # self.num_channels = [2048]
-            return_layers = {'layer2': "0"}
-            self.strides = [8]
-            self.num_channels = [512]
+            return_layers = {'layer4': "0"}
+            self.strides = [32]
+            self.num_channels = [2048]
+            # return_layers = {'layer2': "0"}
+            # self.strides = [8]
+            # self.num_channels = [512]
         self.body = IntermediateLayerGetter(backbone, return_layers=return_layers)
 
     def forward(self, tensor_list: NestedTensor):
