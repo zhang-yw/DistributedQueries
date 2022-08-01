@@ -193,6 +193,8 @@ class DeformableDETR(nn.Module):
             # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
 
             parameters = self.dynamic_layer(hs[lvl][:,0,:])
+            print(hs[lvl][:,0,:].shape)
+            exit(0)
             param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
             param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
             features = torch.bmm(memory, param1)
