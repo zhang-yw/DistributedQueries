@@ -86,15 +86,17 @@ class DeformableDETR(nn.Module):
         self.two_stage = two_stage
         # self.norm1 = nn.LayerNorm(hidden_dim)
         # self.norm2 = nn.LayerNorm(hidden_dim)
+        # self.proj1 = nn.Linear(hidden_dim, hidden_dim)
+        # self.proj2 = nn.Linear(hidden_dim, hidden_dim)
 
         # prior_prob = 0.01
         # bias_value = -math.log((1 - prior_prob) / prior_prob)
         # self.class_embed.bias.data = torch.ones(num_classes) * bias_value
         # nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
         # nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
-        # for proj in self.input_proj:
-        #     nn.init.xavier_uniform_(proj[0].weight, gain=1)
-        #     nn.init.constant_(proj[0].bias, 0)
+        for proj in self.input_proj:
+            nn.init.xavier_uniform_(proj[0].weight, gain=1)
+            nn.init.constant_(proj[0].bias, 0)
 
         # if two-stage, the last class_embed and bbox_embed is for region proposal generation
         # num_pred = (transformer.decoder.num_layers + 1) if two_stage else transformer.decoder.num_layers
