@@ -57,7 +57,7 @@ class DeformableDETR(nn.Module):
         self.num_feature_levels = num_feature_levels
         # self.activation = F.relu
         if not two_stage:
-            self.query_embed = nn.Embedding(num_queries, hidden_dim*2)
+            self.query_embed = nn.Embedding(num_queries, hidden_dim)
         # if num_feature_levels > 1:
         #     num_backbone_outs = len(backbone.strides)
         #     input_proj_list = []
