@@ -25,7 +25,7 @@ from .backbone import build_backbone
 from .matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
-from .deformable_transformer import build_deforamble_transformer
+from .transformer import build_transformer
 import copy
 
 
@@ -58,28 +58,29 @@ class DeformableDETR(nn.Module):
         # self.activation = F.relu
         if not two_stage:
             self.query_embed = nn.Embedding(num_queries, hidden_dim*2)
-        if num_feature_levels > 1:
-            num_backbone_outs = len(backbone.strides)
-            input_proj_list = []
-            for _ in range(num_backbone_outs):
-                in_channels = backbone.num_channels[_]
-                input_proj_list.append(nn.Sequential(
-                    nn.Conv2d(in_channels, hidden_dim, kernel_size=1),
-                    nn.GroupNorm(32, hidden_dim),
-                ))
-            for _ in range(num_feature_levels - num_backbone_outs):
-                input_proj_list.append(nn.Sequential(
-                    nn.Conv2d(in_channels, hidden_dim, kernel_size=3, stride=2, padding=1),
-                    nn.GroupNorm(32, hidden_dim),
-                ))
-                in_channels = hidden_dim
-            self.input_proj = nn.ModuleList(input_proj_list)
-        else:
-            self.input_proj = nn.ModuleList([
-                nn.Sequential(
-                    nn.Conv2d(backbone.num_channels[0], hidden_dim, kernel_size=1),
-                    nn.GroupNorm(32, hidden_dim),
-                )])
+        # if num_feature_levels > 1:
+        #     num_backbone_outs = len(backbone.strides)
+        #     input_proj_list = []
+        #     for _ in range(num_backbone_outs):
+        #         in_channels = backbone.num_channels[_]
+        #         input_proj_list.append(nn.Sequential(
+        #             nn.Conv2d(in_channels, hidden_dim, kernel_size=1),
+        #             nn.GroupNorm(32, hidden_dim),
+        #         ))
+        #     for _ in range(num_feature_levels - num_backbone_outs):
+        #         input_proj_list.append(nn.Sequential(
+        #             nn.Conv2d(in_channels, hidden_dim, kernel_size=3, stride=2, padding=1),
+        #             nn.GroupNorm(32, hidden_dim),
+        #         ))
+        #         in_channels = hidden_dim
+        #     self.input_proj = nn.ModuleList(input_proj_list)
+        # else:
+        #     self.input_proj = nn.ModuleList([
+        #         nn.Sequential(
+        #             nn.Conv2d(backbone.num_channels[0], hidden_dim, kernel_size=1),
+        #             nn.GroupNorm(32, hidden_dim),
+        #         )])
+        self.input_proj = nn.Conv2d(backbone.num_channels[0], hidden_dim, kernel_size=1)
         self.backbone = backbone
         self.aux_loss = aux_loss
         self.with_box_refine = with_box_refine
@@ -105,9 +106,9 @@ class DeformableDETR(nn.Module):
         # self.class_embed.bias.data = torch.ones(num_classes) * bias_value
         # nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
         # nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
-        for proj in self.input_proj:
-            nn.init.xavier_uniform_(proj[0].weight, gain=1)
-            nn.init.constant_(proj[0].bias, 0)
+        # for proj in self.input_proj:
+        #     nn.init.xavier_uniform_(proj[0].weight, gain=1)
+        #     nn.init.constant_(proj[0].bias, 0)
         prior_prob = 0.01
         bias_value = -math.log((1 - prior_prob) / prior_prob)
         self.out_layer.bias.data = torch.ones(1) * bias_value
@@ -152,37 +153,40 @@ class DeformableDETR(nn.Module):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
 
-        srcs = []
-        masks = []
-        for l, feat in enumerate(features):
-            src, mask = feat.decompose()
-            srcs.append(self.input_proj[l](src))
-            masks.append(mask)
-            assert mask is not None
-        if self.num_feature_levels > len(srcs):
-            _len_srcs = len(srcs)
-            for l in range(_len_srcs, self.num_feature_levels):
-                if l == _len_srcs:
-                    src = self.input_proj[l](features[-1].tensors)
-                else:
-                    src = self.input_proj[l](srcs[-1])
-                m = samples.mask
-                mask = F.interpolate(m[None].float(), size=src.shape[-2:]).to(torch.bool)[0]
-                pos_l = self.backbone[1](NestedTensor(src, mask)).to(src.dtype)
-                srcs.append(src)
-                masks.append(mask)
-                pos.append(pos_l)
+        # srcs = []
+        # masks = []
+        # for l, feat in enumerate(features):
+        #     src, mask = feat.decompose()
+        #     srcs.append(self.input_proj[l](src))
+        #     masks.append(mask)
+        #     assert mask is not None
+        src, mask = features[-1].decompose()
+        assert mask is not None
+        hs, memory = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])
+        # if self.num_feature_levels > len(srcs):
+        #     _len_srcs = len(srcs)
+        #     for l in range(_len_srcs, self.num_feature_levels):
+        #         if l == _len_srcs:
+        #             src = self.input_proj[l](features[-1].tensors)
+        #         else:
+        #             src = self.input_proj[l](srcs[-1])
+        #         m = samples.mask
+        #         mask = F.interpolate(m[None].float(), size=src.shape[-2:]).to(torch.bool)[0]
+        #         pos_l = self.backbone[1](NestedTensor(src, mask)).to(src.dtype)
+        #         srcs.append(src)
+        #         masks.append(mask)
+        #         pos.append(pos_l)
 
-        query_embeds = None
-        if not self.two_stage:
-            query_embeds = self.query_embed.weight
-        # hs, init_reference, inter_references, enc_outputs_class, enc_outputs_coord_unact = self.transformer(srcs, masks, pos, query_embeds)
-        hs, memory = self.transformer(srcs, masks, pos, query_embeds)
+        # query_embeds = None
+        # if not self.two_stage:
+        #     query_embeds = self.query_embed.weight
+        # # hs, init_reference, inter_references, enc_outputs_class, enc_outputs_coord_unact = self.transformer(srcs, masks, pos, query_embeds)
+        # hs, memory = self.transformer(srcs, masks, pos, query_embeds)
 
         outputs_classes = []
         outputs_coords = []
         outputs_hms = []
-        bs, c, h, w = srcs[0].shape
+        bs, c, h, w = src.shape
         for lvl in range(hs.shape[0]):
             # if lvl == 0:
             #     reference = init_reference
@@ -631,7 +635,7 @@ def build(args):
 
     backbone = build_backbone(args)
 
-    transformer = build_deforamble_transformer(args)
+    transformer = build_transformer(args)
     model = DeformableDETR(
         backbone,
         transformer,

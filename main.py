@@ -80,6 +80,7 @@ def get_args_parser():
                         help="Number of query slots")
     parser.add_argument('--dec_n_points', default=4, type=int)
     parser.add_argument('--enc_n_points', default=4, type=int)
+    parser.add_argument('--pre_norm', action='store_true')
 
     # * Segmentation
     parser.add_argument('--masks', action='store_true',
