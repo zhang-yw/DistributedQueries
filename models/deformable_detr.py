@@ -84,6 +84,7 @@ class DeformableDETR(nn.Module):
         self.aux_loss = aux_loss
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
+        self.activation = nn.ReLU(inplace=True)
         # self.norm1 = nn.LayerNorm(hidden_dim)
         # self.norm2 = nn.LayerNorm(hidden_dim)
         # self.proj1 = nn.Linear(hidden_dim, hidden_dim)
@@ -176,7 +177,7 @@ class DeformableDETR(nn.Module):
             # scroes = self.norm1(hs[lvl])
             # memory_norm = self.norm2(memory)
             scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+            scores = torch.clamp(self.activation(scores).sigmoid_(), min=1e-4, max=1-1e-4)
             outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
