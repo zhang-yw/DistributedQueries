@@ -177,9 +177,9 @@ for fname in filenames:
     #     continue
 
     # print(dec_attn_weights[5].shape)
-    print(outputs['pred_hms'][0].view(h,w).shape)
+    # print(outputs['pred_hms'][0].view(h,w).shape)
 
-    fig, axs = plt.subplots(ncols=3, nrows=1, squeeze=False, figsize=(10, 32))
+    fig, axs = plt.subplots(ncols=3, nrows=1, squeeze=False, figsize=(5, 5))
     colors = COLORS * 100
 
     for row in range(1):
@@ -210,7 +210,7 @@ for fname in filenames:
                 ax.set_title(f"decoder")
                 ax.axis('off')
             else:
-                ax.imshow(outputs['pred_hms'][0].view(h, w))
+                ax.imshow(outputs['pred_hms'][0].view(h, w).numpy())
                 ax.set_title(f"output")
                 ax.axis('off')
     fig.tight_layout()
