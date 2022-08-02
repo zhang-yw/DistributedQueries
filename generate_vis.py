@@ -278,7 +278,7 @@ for fname in filenames:
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
     queries = queries[0][0]
-    print(queries)
+    print(queries.shape)
     exit(0)
     # print(dec_attn_weights[0].shape)
 
