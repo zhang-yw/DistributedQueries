@@ -16,6 +16,7 @@ from models import build_model
 import shutil, random, os
 import json
 from pycocotools.coco import COCO
+from datasets.coco import CocoDetection 
 from datasets.coco import make_coco_transforms, ConvertCocoPolysToMask
 import numpy as np
 random.seed(0)
@@ -189,6 +190,7 @@ def plot_results2(pil_img, boxes):
     plt.show()
 
 checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr_vis/checkpoint.pth")
+dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_val2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
 
 args = checkpoint['args']
 args.num_feature_levels = 1
@@ -214,6 +216,9 @@ for fname in filenames:
     outputs = model(img)
     bs, c, h, w = img.shape
     img_id = int(fname[:-4])
+    img, target = dataset.__getitem__(dataset.ids.index(img_id))
+    print(target)
+    exit(0)
     ann_ids = coco.getAnnIds(imgIds=img_id)
     ann = coco.loadAnns(ann_ids)
     # target = {'image_id': img_id, 'annotations': ann}
@@ -231,9 +236,6 @@ for fname in filenames:
     target = {}
     target["boxes"] = boxes
     target = transform_val(target)
-    print(target)
-    exit(0)
-
     # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
     # keep only predictions with 0.7+ confidence
