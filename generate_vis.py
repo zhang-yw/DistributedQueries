@@ -183,7 +183,7 @@ for fname in filenames:
     colors = COLORS * 100
 
     for row in range(1):
-        for col in range(2):
+        for col in range(3):
             ax = axs[row][col]
             if col == 0:
                 ax.imshow(im)
@@ -210,8 +210,8 @@ for fname in filenames:
                 ax.set_title(f"decoder")
                 ax.axis('off')
             else:
-                print(outputs['pred_hms'][0].view(h, w).numpy())
-                exit(0)
+                # print(outputs['pred_hms'][0].view(h, w).numpy())
+                # exit(0)
                 ax.imshow(outputs['pred_hms'][0].view(h, w).numpy())
                 ax.set_title(f"output")
                 ax.axis('off')
