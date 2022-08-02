@@ -216,7 +216,9 @@ for fname in filenames:
     bs, c, h, w = img.shape
     img_id = int(fname[:-4])
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
-    outputs = model(img)
+    print(img.shape)
+    exit(0)
+    # outputs = model(img)
     # ann_ids = coco.getAnnIds(imgIds=img_id)
     # ann = coco.loadAnns(ann_ids)
     # # target = {'image_id': img_id, 'annotations': ann}
