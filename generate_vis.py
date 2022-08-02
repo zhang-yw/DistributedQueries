@@ -279,6 +279,7 @@ for fname in filenames:
     dec_attn_weights = dec_attn_weights
     queries = queries[0][0]
     print(queries)
+    exit(0)
     # print(dec_attn_weights[0].shape)
 
     # get the feature map shape
@@ -316,8 +317,8 @@ for fname in filenames:
                 ax.set_title("gt")
                 ax.axis('off')
             elif col ==1:
-                print(dec_attn_weights[0][0,0,:].view(h, w))
-                exit(0)
+                # print(dec_attn_weights[0][0,0,:].view(h, w))
+                # exit(0)
                 ax.imshow(dec_attn_weights[0][0,0,:].view(h, w))
                 ax.set_title(f"decoder")
                 ax.axis('off')
