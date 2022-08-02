@@ -92,7 +92,9 @@ def plot_results2(pil_img, boxes):
 
 checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
 
-model, criterion, postprocessors = build_model(checkpoint['args'])
+args = checkpoint['args']
+args.num_feature_levels = 1
+model, criterion, postprocessors = build_model(args)
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
@@ -137,9 +139,9 @@ for fname in filenames:
         model.backbone[-2].register_forward_hook(
             lambda self, input, output: conv_features.append(output)
         ),
-        model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
-            lambda self, input, output: enc_attn_weights.append(output[1])
-        ),
+        # model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
+        #     lambda self, input, output: enc_attn_weights.append(output[1])
+        # ),
         model.transformer.decoder.layers[5].multihead_attn.register_forward_hook(
             lambda self, input, output: dec_attn_weights.append(output[1])
         ),
@@ -152,7 +154,7 @@ for fname in filenames:
         hook.remove()
     # don't need the list anymore
     conv_features = conv_features[0]
-    enc_attn_weights = enc_attn_weights[0]
+    # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
 
     # get the feature map shape
