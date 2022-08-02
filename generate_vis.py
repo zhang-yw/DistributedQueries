@@ -230,6 +230,8 @@ for fname in filenames:
     boxes = boxes[keep]
     target = {}
     target["boxes"] = boxes
+    print(target["boxes"])
+    exit(0)
 
     # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
