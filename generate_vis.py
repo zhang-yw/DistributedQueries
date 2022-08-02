@@ -263,7 +263,7 @@ for fname in filenames:
         model.transformer.decoder.layers[5].multihead_attn.register_forward_hook(
             lambda self, input, output: dec_attn_weights.append(output[1])
         ),
-        model.transformerregister_forward_hook(
+        model.transformer.register_forward_hook(
             lambda self, input, output: queries.append(output[0])
         ),
     ]
