@@ -177,6 +177,7 @@ for fname in filenames:
     #     continue
 
     # print(dec_attn_weights[5].shape)
+    print(outputs['pred_hms'][0].shape)
 
     fig, axs = plt.subplots(ncols=3, nrows=1, squeeze=False, figsize=(10, 32))
     colors = COLORS * 100
