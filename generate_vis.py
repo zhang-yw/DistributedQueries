@@ -290,13 +290,13 @@ for fname in filenames:
         for col in range(4):
             ax = axs[row][col]
             if col == 0:
-                ax.imshow(im)
+                ax.imshow(img)
                 # keep only predictions with 0.7+ confidence
                 # probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
                 # keep = probas.max(-1).values > 0.5
 
                 # convert boxes from [0; 1] to image scales
-                bboxes_scaled = rescale_bboxes(target['boxes'], im.size)
+                bboxes_scaled = rescale_bboxes(target['boxes'], img.size[-2:])
                 for (xmin, ymin, xmax, ymax), c in zip(bboxes_scaled.tolist(), colors):
                     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                             fill=False, color=c, linewidth=3))
