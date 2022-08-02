@@ -210,6 +210,8 @@ for fname in filenames:
                 ax.set_title(f"decoder")
                 ax.axis('off')
             else:
+                print(outputs['pred_hms'][0].view(h, w).numpy())
+                exit(0)
                 ax.imshow(outputs['pred_hms'][0].view(h, w).numpy())
                 ax.set_title(f"output")
                 ax.axis('off')
