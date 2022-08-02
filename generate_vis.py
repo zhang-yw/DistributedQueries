@@ -118,7 +118,7 @@ for fname in filenames:
     ann_ids = coco.getAnnIds(imgIds=img_id)
     ann = coco.loadAnns(ann_ids)
     target = {'image_id': img_id, 'annotations': ann}
-    img, target = prepare(img, target)
+    img, target = prepare(transform(im), target)
     img, target = transform_val(img, target)
     # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
