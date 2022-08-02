@@ -290,7 +290,7 @@ for fname in filenames:
         for col in range(4):
             ax = axs[row][col]
             if col == 0:
-                ax.imshow(img)
+                ax.imshow(img[0])
                 # keep only predictions with 0.7+ confidence
                 # probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
                 # keep = probas.max(-1).values > 0.5
