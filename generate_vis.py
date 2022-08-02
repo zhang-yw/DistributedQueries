@@ -207,35 +207,33 @@ filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000
 
 # filenames = random.sample(os.listdir(val_path), 50)
 for fname in filenames:
-    srcpath = os.path.join(val_path, fname)
-    im = Image.open(srcpath)
-    # mean-std normalize the input image (batch-size: 1)
-    img = transform(im).unsqueeze(0)
+    # srcpath = os.path.join(val_path, fname)
+    # im = Image.open(srcpath)
+    # # mean-std normalize the input image (batch-size: 1)
+    # img = transform(im).unsqueeze(0)
 
     # propagate through the model
-    outputs = model(img)
     bs, c, h, w = img.shape
     img_id = int(fname[:-4])
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
-    print(target)
-    exit(0)
-    ann_ids = coco.getAnnIds(imgIds=img_id)
-    ann = coco.loadAnns(ann_ids)
-    # target = {'image_id': img_id, 'annotations': ann}
-    # img, target = prepare(transform(im), target)
-    # img, target = transform_val(img, target)
-    ann = [obj for obj in ann if 'iscrowd' not in obj or obj['iscrowd'] == 0]
-    boxes = [obj["bbox"] for obj in ann]
-    # guard against no boxes via resizing
-    boxes = torch.as_tensor(boxes, dtype=torch.float32).reshape(-1, 4)
-    boxes[:, 2:] += boxes[:, :2]
-    boxes[:, 0::2].clamp_(min=0, max=w)
-    boxes[:, 1::2].clamp_(min=0, max=h)
-    keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
-    boxes = boxes[keep]
-    target = {}
-    target["boxes"] = boxes
-    target = transform_val(target)
+    outputs = model(img)
+    # ann_ids = coco.getAnnIds(imgIds=img_id)
+    # ann = coco.loadAnns(ann_ids)
+    # # target = {'image_id': img_id, 'annotations': ann}
+    # # img, target = prepare(transform(im), target)
+    # # img, target = transform_val(img, target)
+    # ann = [obj for obj in ann if 'iscrowd' not in obj or obj['iscrowd'] == 0]
+    # boxes = [obj["bbox"] for obj in ann]
+    # # guard against no boxes via resizing
+    # boxes = torch.as_tensor(boxes, dtype=torch.float32).reshape(-1, 4)
+    # boxes[:, 2:] += boxes[:, :2]
+    # boxes[:, 0::2].clamp_(min=0, max=w)
+    # boxes[:, 1::2].clamp_(min=0, max=h)
+    # keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
+    # boxes = boxes[keep]
+    # target = {}
+    # target["boxes"] = boxes
+    # target = transform_val(target)
     # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
     # keep only predictions with 0.7+ confidence
