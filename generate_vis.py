@@ -117,9 +117,21 @@ for fname in filenames:
     img_id = int(fname[:-4])
     ann_ids = coco.getAnnIds(imgIds=img_id)
     ann = coco.loadAnns(ann_ids)
-    target = {'image_id': img_id, 'annotations': ann}
-    img, target = prepare(transform(im), target)
-    img, target = transform_val(img, target)
+    # target = {'image_id': img_id, 'annotations': ann}
+    # img, target = prepare(transform(im), target)
+    # img, target = transform_val(img, target)
+    ann = [obj for obj in ann if 'iscrowd' not in obj or obj['iscrowd'] == 0]
+    boxes = [obj["bbox"] for obj in ann]
+    # guard against no boxes via resizing
+    boxes = torch.as_tensor(boxes, dtype=torch.float32).reshape(-1, 4)
+    boxes[:, 2:] += boxes[:, :2]
+    boxes[:, 0::2].clamp_(min=0, max=w)
+    boxes[:, 1::2].clamp_(min=0, max=h)
+    keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
+    boxes = boxes[keep]
+    target = {}
+    target["boxes"] = boxes
+
     # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
     # keep only predictions with 0.7+ confidence
