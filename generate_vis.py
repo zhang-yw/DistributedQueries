@@ -281,7 +281,7 @@ for fname in filenames:
     colors = COLORS * 100
 
     for row in range(1):
-        for col in range(3):
+        for col in range(4):
             ax = axs[row][col]
             if col == 0:
                 ax.imshow(im)
