@@ -217,8 +217,8 @@ for fname in filenames:
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
     img = img.unsqueeze(0)
     bs, c, h, w = img.shape
-    print(img.shape)
-    exit(0)
+    # print(img.shape)
+    # exit(0)
     # outputs = model(img)
     # ann_ids = coco.getAnnIds(imgIds=img_id)
     # ann = coco.loadAnns(ann_ids)
