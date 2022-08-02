@@ -114,8 +114,7 @@ for fname in filenames:
 
     # propagate through the model
     outputs = model(img)
-    print(img.shape)
-    exit(0)
+    bs, c, h, w = img.shape
     img_id = int(fname[:-4])
     ann_ids = coco.getAnnIds(imgIds=img_id)
     ann = coco.loadAnns(ann_ids)
