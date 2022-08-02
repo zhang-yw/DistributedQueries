@@ -230,7 +230,7 @@ for fname in filenames:
     boxes = boxes[keep]
     target = {}
     target["boxes"] = boxes
-    img, target = transform_val(img, target)
+    target = transform_val(target)
     print(target)
     exit(0)
 
