@@ -14,9 +14,12 @@ import torchvision.transforms as T
 torch.set_grad_enabled(False);
 from models import build_model
 import shutil, random, os
+import json
+from pycocotools.coco import COCO
+from datasets.coco import make_coco_transforms, ConvertCocoPolysToMask
 random.seed(0)
 val_path = "/nobackup/yiwei/coco/images/val2017"
-save_path = "/nobackup/yiwei/coco/images/vis/1_cross_att_head"
+save_path = "/nobackup/yiwei/coco/images/detr_focal_loss_hm"
 # save_path_2 = "/nobackup/yiwei/coco/images/20_conddetr_att"
 
 # COCO classes
@@ -76,13 +79,29 @@ def plot_results(pil_img, prob, boxes):
     plt.axis('off')
     plt.show()
 
-checkpoint = torch.load("/nobackup/yiwei/CondDETR/output/1queries_cross_attention+LearnableRef_conddetr_r50_epoch50/checkpoint0049.pth")
+def plot_results2(pil_img, boxes):
+    plt.figure()
+    plt.imshow(pil_img)
+    ax = plt.gca()
+    colors = COLORS * 100
+    for (xmin, ymin, xmax, ymax), c in zip(boxes.tolist(), colors):
+        ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+                                   fill=False, color=c, linewidth=3))
+    plt.axis('off')
+    plt.show()
+
+checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
 
 model, criterion, postprocessors = build_model(checkpoint['args'])
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
+coco = COCO("/nobackup/yiwei/coco/annotations/instances_val2017.json")
+prepare = ConvertCocoPolysToMask(False)
+transform_val = make_coco_transforms('val')
+
 filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000099810.jpg', '000000370818.jpg', '000000016502.jpg', '000000416256.jpg', '000000338905.jpg', '000000423617.jpg',  '000000295138.jpg', '000000066523.jpg', '000000031269.jpg', '000000014439.jpg', '000000453584.jpg', '000000009914.jpg', '000000210230.jpg', '000000306136.jpg', '000000263425.jpg', '000000288042.jpg', '000000396526.jpg', '000000016598.jpg', '000000323799.jpg', '000000159282.jpg', '000000474078.jpg', '000000564280.jpg', '000000175387.jpg', '000000223959.jpg', '000000492110.jpg', '000000186345.jpg', '000000106757.jpg', '000000495732.jpg', '000000495054.jpg', '000000218249.jpg', '000000537964.jpg', '000000050165.jpg', '000000163746.jpg', '000000020247.jpg', '000000500565.jpg', '000000287527.jpg', '000000365207.jpg', '000000068833.jpg', '000000499181.jpg', '000000521141.jpg', '000000434996.jpg', '000000281179.jpg', '000000214200.jpg']
+
 
 # filenames = random.sample(os.listdir(val_path), 50)
 for fname in filenames:
@@ -93,13 +112,20 @@ for fname in filenames:
 
     # propagate through the model
     outputs = model(img)
+    img_id = int(fname[:-4])
+    ann_ids = coco.getAnnIds(imgIds=img_id)
+    ann = coco.loadAnns(ann_ids)
+    target = {'image_id': img_id, 'annotations': ann}
+    img, target = prepare(img, target)
+    img, target = transform_val(img, target)
+    # plot_results2(im, rescale_bboxes(target['boxes'], im.size))
 
     # keep only predictions with 0.7+ confidence
-    probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
-    keep = probas.max(-1).values > 0.5
+    # probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
+    # keep = probas.max(-1).values > 0.5
 
     # convert boxes from [0; 1] to image scales
-    bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
+    # bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
 
     # plot_results(im, probas[keep], bboxes_scaled)
     # plt.savefig(os.path.join(save_path, fname))
@@ -114,7 +140,7 @@ for fname in filenames:
         model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
             lambda self, input, output: enc_attn_weights.append(output[1])
         ),
-        model.transformer.decoder.layers[5].cross_attn.register_forward_hook(
+        model.transformer.decoder.layers[5].multihead_attn.register_forward_hook(
             lambda self, input, output: dec_attn_weights.append(output[1])
         ),
     ]
@@ -131,42 +157,44 @@ for fname in filenames:
 
     # get the feature map shape
     h, w = conv_features['0'].tensors.shape[-2:]
-    if len(keep.nonzero()) == 0:
-        continue
+    # if len(keep.nonzero()) == 0:
+    #     continue
 
     # print(dec_attn_weights[5].shape)
 
-    fig, axs = plt.subplots(ncols=3, nrows=9, squeeze=False, figsize=(10, 32))
+    fig, axs = plt.subplots(ncols=3, nrows=1, squeeze=False, figsize=(10, 32))
     colors = COLORS * 100
 
-    for row in range(9):
+    for row in range(1):
         for col in range(2):
             ax = axs[row][col]
             if col == 0:
                 ax.imshow(im)
                 # keep only predictions with 0.7+ confidence
-                probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
-                keep = probas.max(-1).values > 0.5
+                # probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
+                # keep = probas.max(-1).values > 0.5
 
                 # convert boxes from [0; 1] to image scales
-                bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
-                for p, (xmin, ymin, xmax, ymax), c in zip(probas[keep], bboxes_scaled.tolist(), colors):
+                bboxes_scaled = rescale_bboxes(target['boxes'], im.size)
+                for (xmin, ymin, xmax, ymax), c in zip(bboxes_scaled.tolist(), colors):
                     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                             fill=False, color=c, linewidth=3))
-                    cl = p.argmax()
-                    text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
-                    ax.text(xmin, ymin, text, fontsize=15,
-                            bbox=dict(facecolor='yellow', alpha=0.5))
-                ax.set_title("Final outputs")
+                # for p, (xmin, ymin, xmax, ymax), c in zip(probas[keep], bboxes_scaled.tolist(), colors):
+                #     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+                #                             fill=False, color=c, linewidth=3))
+                #     cl = p.argmax()
+                #     text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
+                #     ax.text(xmin, ymin, text, fontsize=15,
+                #             bbox=dict(facecolor='yellow', alpha=0.5))
+                ax.set_title("gt")
+                ax.axis('off')
+            elif col ==1:
+                ax.imshow(dec_attn_weights[0][0].view(h, w))
+                ax.set_title(f"decoder")
                 ax.axis('off')
             else:
-                if row <= 7:
-                    ax.imshow(dec_attn_weights[0][0, row, col-1].view(h, w))
-                    ax.set_title(f"Head {row+1}, Query {col}")
-                else:
-                    attens = dec_attn_weights[0].sum(dim=1) / 8
-                    ax.imshow(attens[0][col-1].view(h, w))
-                    ax.set_title(f"Averaged Query {col}")
+                ax.imshow(outputs['pred_hms'][0].view(h, w))
+                ax.set_title(f"output")
                 ax.axis('off')
     fig.tight_layout()
     plt.savefig(os.path.join(save_path, fname))
