@@ -85,15 +85,15 @@ class DeformableDETR(nn.Module):
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
 
-        self.num_params = hidden_dim*64
-        self.num_dynamic = 2
-        self.dynamic_layer = nn.Linear(hidden_dim, self.num_dynamic * self.num_params)
-        self.hidden_dim = hidden_dim
-        self.dim_dynamic = 64
-        self.norm1 = nn.LayerNorm(self.dim_dynamic)
-        self.norm2 = nn.LayerNorm(self.hidden_dim)
-        self.activation = nn.ReLU(inplace=True)
-        self.out_layer = nn.Linear(hidden_dim, 1)
+        # self.num_params = hidden_dim*64
+        # self.num_dynamic = 2
+        # self.dynamic_layer = nn.Linear(hidden_dim, self.num_dynamic * self.num_params)
+        # self.hidden_dim = hidden_dim
+        # self.dim_dynamic = 64
+        # self.norm1 = nn.LayerNorm(self.dim_dynamic)
+        # self.norm2 = nn.LayerNorm(self.hidden_dim)
+        # self.activation = nn.ReLU(inplace=True)
+        # self.out_layer = nn.Linear(hidden_dim, 1)
         # self.activation = nn.ReLU(inplace=False)
         # self.norm1 = nn.LayerNorm(hidden_dim)
         # self.norm2 = nn.LayerNorm(hidden_dim)
@@ -108,9 +108,9 @@ class DeformableDETR(nn.Module):
         for proj in self.input_proj:
             nn.init.xavier_uniform_(proj[0].weight, gain=1)
             nn.init.constant_(proj[0].bias, 0)
-        prior_prob = 0.01
-        bias_value = -math.log((1 - prior_prob) / prior_prob)
-        self.out_layer.bias.data = torch.ones(1) * bias_value
+        # prior_prob = 0.01
+        # bias_value = -math.log((1 - prior_prob) / prior_prob)
+        # self.out_layer.bias.data = torch.ones(1) * bias_value
         # nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
         # nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
 
