@@ -90,7 +90,7 @@ def plot_results2(pil_img, boxes):
     plt.axis('off')
     plt.show()
 
-checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
+checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr_vis/checkpoint.pth")
 
 args = checkpoint['args']
 args.num_feature_levels = 1
