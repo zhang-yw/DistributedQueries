@@ -213,9 +213,9 @@ for fname in filenames:
     # img = transform(im).unsqueeze(0)
 
     # propagate through the model
-    bs, c, h, w = img.shape
     img_id = int(fname[:-4])
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
+    bs, c, h, w = img.shape
     print(img.shape)
     exit(0)
     # outputs = model(img)
