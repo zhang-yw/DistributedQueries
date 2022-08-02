@@ -207,8 +207,8 @@ filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000
 
 # filenames = random.sample(os.listdir(val_path), 50)
 for fname in filenames:
-    # srcpath = os.path.join(val_path, fname)
-    # im = Image.open(srcpath)
+    srcpath = os.path.join(val_path, fname)
+    im = Image.open(srcpath)
     # # mean-std normalize the input image (batch-size: 1)
     # img = transform(im).unsqueeze(0)
 
@@ -290,13 +290,13 @@ for fname in filenames:
         for col in range(4):
             ax = axs[row][col]
             if col == 0:
-                ax.imshow(img[0].permute(1, 2, 0))
+                ax.imshow(im)
                 # keep only predictions with 0.7+ confidence
                 # probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
                 # keep = probas.max(-1).values > 0.5
 
                 # convert boxes from [0; 1] to image scales
-                bboxes_scaled = rescale_bboxes(target['boxes'], (w,h))
+                bboxes_scaled = rescale_bboxes(target['boxes'], im.shape)
                 for (xmin, ymin, xmax, ymax), c in zip(bboxes_scaled.tolist(), colors):
                     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                             fill=False, color=c, linewidth=3))
