@@ -169,7 +169,7 @@ for fname in filenames:
     conv_features = conv_features[0]
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
-    print(dec_attn_weights[0].shape)
+    # print(dec_attn_weights[0].shape)
 
     # get the feature map shape
     h, w = conv_features['0'].tensors.shape[-2:]
@@ -205,7 +205,7 @@ for fname in filenames:
                 ax.set_title("gt")
                 ax.axis('off')
             elif col ==1:
-                ax.imshow(dec_attn_weights[0][0].view(h, w))
+                ax.imshow(dec_attn_weights[0][0,0,:].view(h, w))
                 ax.set_title(f"decoder")
                 ax.axis('off')
             else:
