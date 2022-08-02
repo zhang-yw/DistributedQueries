@@ -322,8 +322,11 @@ for fname in filenames:
                     ct = np.array([target[j][0]*w, target[j][1]*h], dtype=np.float32)
                     ct_int = ct.astype(np.int32)
                     draw_umich_gaussian(hm, ct_int, radius)
-                    fig.tight_layout()
-                    plt.savefig(os.path.join(save_path, fname))
+                ax.imshow(hm)
+                ax.set_title(f"gt_hm")
+                ax.axis('off')
+    fig.tight_layout()
+    plt.savefig(os.path.join(save_path, fname))
 
     # for ax_i in axs.T:
     #     ax = ax_i[0]
