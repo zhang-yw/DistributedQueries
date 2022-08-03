@@ -323,8 +323,8 @@ for fname in filenames:
                 ax.set_title("gt")
                 ax.axis('off')
             elif col ==1:
-                print(dec_attn_weights[0][0,0,:].view(h, w))
-                exit(0)
+                # print(dec_attn_weights[0][0,0,:].view(h, w))
+                # exit(0)
                 ax.imshow(dec_attn_weights[0][0,0,:].view(h, w))
                 ax.set_title(f"decoder")
                 ax.axis('off')
