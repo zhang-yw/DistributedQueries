@@ -213,7 +213,7 @@ class DeformableDETR(nn.Module):
             # features = self.out_layer(features)
             # scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
             # outputs_hms.append(scores.reshape(bs, 1, h, w))
-            outputs_hms.append(attention[:,0,:].reshape(bs, 1, h, w))
+            outputs_hms.append(attention[lvl][:,0,:].reshape(bs, 1, h, w))
 
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
