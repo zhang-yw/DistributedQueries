@@ -86,15 +86,15 @@ class DeformableDETR(nn.Module):
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
 
-        self.num_params = hidden_dim*64
-        self.num_dynamic = 2
-        self.dynamic_layer = nn.Linear(hidden_dim, self.num_dynamic * self.num_params)
-        self.hidden_dim = hidden_dim
-        self.dim_dynamic = 64
-        self.norm1 = nn.LayerNorm(self.dim_dynamic)
-        self.norm2 = nn.LayerNorm(self.hidden_dim)
-        self.activation = nn.ReLU(inplace=True)
-        self.out_layer = nn.Linear(hidden_dim, 1)
+        # self.num_params = hidden_dim*64
+        # self.num_dynamic = 2
+        # self.dynamic_layer = nn.Linear(hidden_dim, self.num_dynamic * self.num_params)
+        # self.hidden_dim = hidden_dim
+        # self.dim_dynamic = 64
+        # self.norm1 = nn.LayerNorm(self.dim_dynamic)
+        # self.norm2 = nn.LayerNorm(self.hidden_dim)
+        # self.activation = nn.ReLU(inplace=True)
+        # self.out_layer = nn.Linear(hidden_dim, 1)
         # self.activation = nn.ReLU(inplace=False)
         # self.norm1 = nn.LayerNorm(hidden_dim)
         # self.norm2 = nn.LayerNorm(hidden_dim)
@@ -109,9 +109,9 @@ class DeformableDETR(nn.Module):
         # for proj in self.input_proj:
         #     nn.init.xavier_uniform_(proj[0].weight, gain=1)
         #     nn.init.constant_(proj[0].bias, 0)
-        prior_prob = 0.01
-        bias_value = -math.log((1 - prior_prob) / prior_prob)
-        self.out_layer.bias.data = torch.ones(1) * bias_value
+        # prior_prob = 0.01
+        # bias_value = -math.log((1 - prior_prob) / prior_prob)
+        # self.out_layer.bias.data = torch.ones(1) * bias_value
         # nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
         # nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
 
@@ -162,7 +162,7 @@ class DeformableDETR(nn.Module):
         #     assert mask is not None
         src, mask = features[-1].decompose()
         assert mask is not None
-        hs, memory = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])
+        hs, memory, attention = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])
         # if self.num_feature_levels > len(srcs):
         #     _len_srcs = len(srcs)
         #     for l in range(_len_srcs, self.num_feature_levels):
@@ -201,18 +201,19 @@ class DeformableDETR(nn.Module):
             # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
             # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
 
-            parameters = self.dynamic_layer(hs[lvl][:,0,:].unsqueeze(1))
-            param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
-            param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
-            features = torch.bmm(memory, param1)
-            features = self.norm1(features)
-            features = self.activation(features)
-            features = torch.bmm(features, param2)
-            features = self.norm2(features)
-            features = self.activation(features)
-            features = self.out_layer(features)
-            scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
-            outputs_hms.append(scores.reshape(bs, 1, h, w))
+            # parameters = self.dynamic_layer(hs[lvl][:,0,:].unsqueeze(1))
+            # param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
+            # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
+            # features = torch.bmm(memory, param1)
+            # features = self.norm1(features)
+            # features = self.activation(features)
+            # features = torch.bmm(features, param2)
+            # features = self.norm2(features)
+            # features = self.activation(features)
+            # features = self.out_layer(features)
+            # scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
+            # outputs_hms.append(scores.reshape(bs, 1, h, w))
+            outputs_hms.append(attention[:,0,:].reshape(bs, 1, h, w))
 
             # outputs_class = self.class_embed[lvl](hs[lvl])
             # tmp = self.bbox_embed[lvl](hs[lvl])
