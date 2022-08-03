@@ -20,7 +20,7 @@ from datasets.coco import CocoDetection
 from datasets.coco import make_coco_transforms, ConvertCocoPolysToMask
 import numpy as np
 random.seed(0)
-val_path = "/nobackup/yiwei/coco/images/val2017"
+val_path = "/nobackup/yiwei/coco/images/train2017"
 save_path = "/nobackup/yiwei/coco/images/detr_focal_loss_hm"
 # save_path_2 = "/nobackup/yiwei/coco/images/20_conddetr_att"
 
