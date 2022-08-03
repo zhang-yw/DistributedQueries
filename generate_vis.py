@@ -189,8 +189,8 @@ def plot_results2(pil_img, boxes):
     plt.axis('off')
     plt.show()
 
-checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint0028_9queries.pth")
-dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_val2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
+checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
+dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_train2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
 
 args = checkpoint['args']
 args.num_feature_levels = 1
@@ -198,7 +198,7 @@ model, criterion, postprocessors = build_model(args)
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
-coco = COCO("/nobackup/yiwei/coco/annotations/instances_val2017.json")
+coco = COCO("/nobackup/yiwei/coco/annotations/instances_train2017.json")
 prepare = ConvertCocoPolysToMask(False)
 transform_val = make_coco_transforms('val')
 
