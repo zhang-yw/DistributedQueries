@@ -34,6 +34,8 @@ class CocoDetection(TvCocoDetection):
         idx = 0
         img, target = super(CocoDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
+        print(image_id)
+        exit(0)
         target = {'image_id': image_id, 'annotations': target}
         img, target = self.prepare(img, target)
         if self._transforms is not None:
