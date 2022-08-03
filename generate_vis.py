@@ -189,7 +189,7 @@ def plot_results2(pil_img, boxes):
     plt.axis('off')
     plt.show()
 
-checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
+checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint0028_9queries.pth")
 dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_val2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
 
 args = checkpoint['args']
@@ -278,13 +278,13 @@ for fname in filenames:
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
     queries = queries[0]
-    print(queries[0][0])
-    print(queries[1][0])
-    print(queries[2][0])
-    print(queries[3][0])
-    print(queries[4][0])
-    print(queries[5][0])
-    exit(0)
+    # print(queries[0][0])
+    # print(queries[1][0])
+    # print(queries[2][0])
+    # print(queries[3][0])
+    # print(queries[4][0])
+    # print(queries[5][0])
+    # exit(0)
     # print(dec_attn_weights[0].shape)
 
     # get the feature map shape
