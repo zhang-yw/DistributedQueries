@@ -162,7 +162,7 @@ class DeformableDETR(nn.Module):
         #     assert mask is not None
         src, mask = features[-1].decompose()
         assert mask is not None
-        hs, memory, attention = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])
+        hs, attention = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])
         # if self.num_feature_levels > len(srcs):
         #     _len_srcs = len(srcs)
         #     for l in range(_len_srcs, self.num_feature_levels):
