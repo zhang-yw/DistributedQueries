@@ -56,7 +56,7 @@ class Transformer(nn.Module):
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         hs, attention= self.decoder(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
-        return hs.transpose(1, 2), memory.permute(1, 0, 2), attention
+        return hs.transpose(1, 2), attention
 
 
 class TransformerEncoder(nn.Module):
