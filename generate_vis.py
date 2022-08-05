@@ -294,11 +294,11 @@ for fname in filenames:
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
     queries = queries
-    print(len(dec_attn_weights))
-    print(len(queries))
-    print(dec_attn_weights[0].shape)
-    print(queries[0].shape)
-    exit(0)
+    # print(len(dec_attn_weights))
+    # print(len(queries))
+    # print(dec_attn_weights[0].shape)
+    # print(queries[0].shape)
+    # exit(0)
     # print(queries[0][0])
     # print(queries[1][0])
     # print(queries[2][0])
@@ -316,12 +316,17 @@ for fname in filenames:
     # print(dec_attn_weights[5].shape)
     # print(outputs['pred_hms'][0].view(h,w).shape)
 
-    fig, axs = plt.subplots(ncols=4, nrows=1, squeeze=False, figsize=(20, 5))
+    fig, axs = plt.subplots(ncols=12, nrows=7, squeeze=False, figsize=(60, 30))
     colors = COLORS * 100
 
-    for row in range(1):
-        for col in range(4):
+    for row in range(7):
+        for col in range(12):
             ax = axs[row][col]
+            if row == 0 and col >=3:
+                ax.imshow(queries[0][5,0,col-3,:].view(16, 16))
+                ax.set_title(f"FinalQuery {col-3}")
+                ax.axis('off')
+                continue
             if col == 0:
                 ax.imshow(im)
                 # keep only predictions with 0.7+ confidence
@@ -345,16 +350,6 @@ for fname in filenames:
             elif col ==1:
                 # print(dec_attn_weights[0][0,0,:].view(h, w))
                 # exit(0)
-                ax.imshow(dec_attn_weights[0][0,0,:].view(h, w))
-                ax.set_title(f"decoder")
-                ax.axis('off')
-            elif col ==2:
-                # print(outputs['pred_hms'][0].view(h, w).numpy())
-                # exit(0)
-                ax.imshow(outputs['pred_hms'][0].view(h, w).numpy())
-                ax.set_title(f"output")
-                ax.axis('off')
-            else:
                 radius = gaussian_radius((math.ceil(h), math.ceil(w)))
                 radius = max(0, int(radius))
                 target = target['boxes']
@@ -365,6 +360,16 @@ for fname in filenames:
                     draw_umich_gaussian(hm, ct_int, radius)
                 ax.imshow(hm)
                 ax.set_title(f"gt_hm")
+                ax.axis('off')
+            elif col ==2:
+                # print(outputs['pred_hms'][0].view(h, w).numpy())
+                # exit(0)
+                ax.imshow(outputs['pred_hms'][0].view(h, w).numpy())
+                ax.set_title(f"output")
+                ax.axis('off')
+            else:
+                ax.imshow(dec_attn_weights[6-row][0,col-3,:].view(h, w))
+                ax.set_title(f"Layer {6-row}, Query {col-3}")
                 ax.axis('off')
     fig.tight_layout()
     plt.savefig(os.path.join(save_path, fname))
