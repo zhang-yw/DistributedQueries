@@ -20,7 +20,7 @@ from datasets.coco import CocoDetection
 from datasets.coco import make_coco_transforms, ConvertCocoPolysToMask
 import numpy as np
 random.seed(0)
-val_path = "/nobackup/yiwei/coco/images/train2017"
+val_path = "/nobackup/yiwei/coco/images/val2017"
 save_path = "/nobackup/yiwei/coco/images/detr_focal_loss_hm"
 # save_path_2 = "/nobackup/yiwei/coco/images/20_conddetr_att"
 
@@ -189,8 +189,8 @@ def plot_results2(pil_img, boxes):
     plt.axis('off')
     plt.show()
 
-checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
-dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_train2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
+checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint0026_attention_super_9queries.pth")
+dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_val2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
 
 args = checkpoint['args']
 args.num_feature_levels = 1
@@ -198,12 +198,12 @@ model, criterion, postprocessors = build_model(args)
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
-coco = COCO("/nobackup/yiwei/coco/annotations/instances_train2017.json")
+coco = COCO("/nobackup/yiwei/coco/annotations/instances_val2017.json")
 prepare = ConvertCocoPolysToMask(False)
 transform_val = make_coco_transforms('val')
 
-# filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000099810.jpg', '000000370818.jpg', '000000016502.jpg', '000000416256.jpg', '000000338905.jpg', '000000423617.jpg',  '000000295138.jpg', '000000066523.jpg', '000000031269.jpg', '000000014439.jpg', '000000453584.jpg', '000000009914.jpg', '000000210230.jpg', '000000306136.jpg', '000000263425.jpg', '000000288042.jpg', '000000396526.jpg', '000000016598.jpg', '000000323799.jpg', '000000159282.jpg', '000000474078.jpg', '000000564280.jpg', '000000175387.jpg', '000000223959.jpg', '000000492110.jpg', '000000186345.jpg', '000000106757.jpg', '000000495732.jpg', '000000495054.jpg', '000000218249.jpg', '000000537964.jpg', '000000050165.jpg', '000000163746.jpg', '000000020247.jpg', '000000500565.jpg', '000000287527.jpg', '000000365207.jpg', '000000068833.jpg', '000000499181.jpg', '000000521141.jpg', '000000434996.jpg', '000000281179.jpg', '000000214200.jpg']
-filenames = ['000000000009.jpg']
+filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000099810.jpg', '000000370818.jpg', '000000016502.jpg', '000000416256.jpg', '000000338905.jpg', '000000423617.jpg',  '000000295138.jpg', '000000066523.jpg', '000000031269.jpg', '000000014439.jpg', '000000453584.jpg', '000000009914.jpg', '000000210230.jpg', '000000306136.jpg', '000000263425.jpg', '000000288042.jpg', '000000396526.jpg', '000000016598.jpg', '000000323799.jpg', '000000159282.jpg', '000000474078.jpg', '000000564280.jpg', '000000175387.jpg', '000000223959.jpg', '000000492110.jpg', '000000186345.jpg', '000000106757.jpg', '000000495732.jpg', '000000495054.jpg', '000000218249.jpg', '000000537964.jpg', '000000050165.jpg', '000000163746.jpg', '000000020247.jpg', '000000500565.jpg', '000000287527.jpg', '000000365207.jpg', '000000068833.jpg', '000000499181.jpg', '000000521141.jpg', '000000434996.jpg', '000000281179.jpg', '000000214200.jpg']
+# filenames = ['000000000009.jpg']
 
 
 # filenames = random.sample(os.listdir(val_path), 50)
@@ -218,6 +218,7 @@ for fname in filenames:
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
     img = img.unsqueeze(0)
     bs, c, h, w = img.shape
+    target = target['boxes']
     # print(img.shape)
     # exit(0)
     # outputs = model(img)
@@ -293,14 +294,19 @@ for fname in filenames:
     conv_features = conv_features[0]
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
-    queries = queries[0]
-    print(queries[0][0])
-    print(queries[1][0])
-    print(queries[2][0])
-    print(queries[3][0])
-    print(queries[4][0])
-    print(queries[5][0])
-    exit(0)
+    queries = queries
+    # print(len(dec_attn_weights))
+    # print(len(queries))
+    # print(dec_attn_weights[0].shape)
+    # print(queries[0].shape)
+    # exit(0)
+    # print(queries[0][0])
+    # print(queries[1][0])
+    # print(queries[2][0])
+    # print(queries[3][0])
+    # print(queries[4][0])
+    # print(queries[5][0])
+    # exit(0)
     # print(dec_attn_weights[0].shape)
 
     # get the feature map shape
@@ -311,12 +317,17 @@ for fname in filenames:
     # print(dec_attn_weights[5].shape)
     # print(outputs['pred_hms'][0].view(h,w).shape)
 
-    fig, axs = plt.subplots(ncols=4, nrows=1, squeeze=False, figsize=(20, 5))
+    fig, axs = plt.subplots(ncols=12, nrows=7, squeeze=False, figsize=(60, 30))
     colors = COLORS * 100
 
-    for row in range(1):
-        for col in range(4):
+    for row in range(7):
+        for col in range(12):
             ax = axs[row][col]
+            if row == 0 and col >=3:
+                ax.imshow(queries[0][5,0,col-3,:].view(16, 16))
+                ax.set_title(f"FinalQuery {col-3}")
+                ax.axis('off')
+                continue
             if col == 0:
                 ax.imshow(im)
                 # keep only predictions with 0.7+ confidence
@@ -324,7 +335,7 @@ for fname in filenames:
                 # keep = probas.max(-1).values > 0.5
 
                 # convert boxes from [0; 1] to image scales
-                bboxes_scaled = rescale_bboxes(target['boxes'], im.size)
+                bboxes_scaled = rescale_bboxes(target, im.size)
                 for (xmin, ymin, xmax, ymax), c in zip(bboxes_scaled.tolist(), colors):
                     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                             fill=False, color=c, linewidth=3))
@@ -340,8 +351,15 @@ for fname in filenames:
             elif col ==1:
                 # print(dec_attn_weights[0][0,0,:].view(h, w))
                 # exit(0)
-                ax.imshow(dec_attn_weights[0][0,0,:].view(h, w))
-                ax.set_title(f"decoder")
+                radius = gaussian_radius((math.ceil(h), math.ceil(w)))
+                radius = max(0, int(radius))
+                hm = torch.zeros((h, w))
+                for j in range(target.size()[0]):
+                    ct = np.array([target[j][0]*w, target[j][1]*h], dtype=np.float32)
+                    ct_int = ct.astype(np.int32)
+                    draw_umich_gaussian(hm, ct_int, radius)
+                ax.imshow(hm)
+                ax.set_title(f"gt_hm")
                 ax.axis('off')
             elif col ==2:
                 # print(outputs['pred_hms'][0].view(h, w).numpy())
@@ -350,16 +368,8 @@ for fname in filenames:
                 ax.set_title(f"output")
                 ax.axis('off')
             else:
-                radius = gaussian_radius((math.ceil(h), math.ceil(w)))
-                radius = max(0, int(radius))
-                target = target['boxes']
-                hm = torch.zeros((h, w))
-                for j in range(target.size()[0]):
-                    ct = np.array([target[j][0]*w, target[j][1]*h], dtype=np.float32)
-                    ct_int = ct.astype(np.int32)
-                    draw_umich_gaussian(hm, ct_int, radius)
-                ax.imshow(hm)
-                ax.set_title(f"gt_hm")
+                ax.imshow(dec_attn_weights[6-row][0,col-3,:].view(h, w))
+                ax.set_title(f"Layer {6-row}, Query {col-3}")
                 ax.axis('off')
     fig.tight_layout()
     plt.savefig(os.path.join(save_path, fname))
