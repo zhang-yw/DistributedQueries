@@ -373,7 +373,7 @@ for fname in filenames:
                 ax.set_title(f"output")
                 ax.axis('off')
             else:
-                ax.imshow(sattn[:,:, target.numpy()[col-3,1], target.numpy()[col-3,0]],cmap='cividis', interpolation='nearest')
+                ax.imshow(sattn[:,:, target.numpy()[col-3,1], target.numpy()[col-3,0]].view(h, w),cmap='cividis', interpolation='nearest')
                 ax.set_title(f"encoder")
                 ax.axis('off')
     fig.tight_layout()
