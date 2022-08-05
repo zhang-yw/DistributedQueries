@@ -219,8 +219,8 @@ for fname in filenames:
     img = img.unsqueeze(0)
     bs, c, h, w = img.shape
     target = target['boxes']
-    print(target)
-    exit(0)
+    # print(target)
+    # exit(0)
     # print(img.shape)
     # exit(0)
     # outputs = model(img)
@@ -295,6 +295,13 @@ for fname in filenames:
     # don't need the list anymore
     conv_features = conv_features[0]
     enc_attn_weights = enc_attn_weights[0]
+    f_map = conv_features['0']
+    # get the HxW shape of the feature maps of the CNN
+    shape = f_map.tensors.shape[-2:]
+    # and reshape the self-attention to a more interpretable shape
+    sattn = enc_attn_weights[0].reshape(shape + shape)
+    print("Reshaped self-attention:", sattn.shape)
+    exit(0)
     # dec_attn_weights = dec_attn_weights
     # queries = queries
     # print(len(dec_attn_weights))
