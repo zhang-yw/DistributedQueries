@@ -20,7 +20,7 @@ from datasets.coco import CocoDetection
 from datasets.coco import make_coco_transforms, ConvertCocoPolysToMask
 import numpy as np
 random.seed(0)
-val_path = "/nobackup/yiwei/coco/images/train2017"
+val_path = "/nobackup/yiwei/coco/images/val2017"
 save_path = "/nobackup/yiwei/coco/images/detr_focal_loss_hm"
 # save_path_2 = "/nobackup/yiwei/coco/images/20_conddetr_att"
 
@@ -190,7 +190,7 @@ def plot_results2(pil_img, boxes):
     plt.show()
 
 checkpoint = torch.load("/nobackup/yiwei/DistributedQueries/exps/r50_deformable_detr/checkpoint.pth")
-dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_train2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
+dataset = CocoDetection(val_path, "/nobackup/yiwei/coco/annotations/instances_val2017.json", transforms=make_coco_transforms('val'), return_masks=False, cache_mode=False)
 
 args = checkpoint['args']
 args.num_feature_levels = 1
@@ -198,12 +198,12 @@ model, criterion, postprocessors = build_model(args)
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
-coco = COCO("/nobackup/yiwei/coco/annotations/instances_train2017.json")
+coco = COCO("/nobackup/yiwei/coco/annotations/instances_val2017.json")
 prepare = ConvertCocoPolysToMask(False)
 transform_val = make_coco_transforms('val')
 
-# filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000099810.jpg', '000000370818.jpg', '000000016502.jpg', '000000416256.jpg', '000000338905.jpg', '000000423617.jpg',  '000000295138.jpg', '000000066523.jpg', '000000031269.jpg', '000000014439.jpg', '000000453584.jpg', '000000009914.jpg', '000000210230.jpg', '000000306136.jpg', '000000263425.jpg', '000000288042.jpg', '000000396526.jpg', '000000016598.jpg', '000000323799.jpg', '000000159282.jpg', '000000474078.jpg', '000000564280.jpg', '000000175387.jpg', '000000223959.jpg', '000000492110.jpg', '000000186345.jpg', '000000106757.jpg', '000000495732.jpg', '000000495054.jpg', '000000218249.jpg', '000000537964.jpg', '000000050165.jpg', '000000163746.jpg', '000000020247.jpg', '000000500565.jpg', '000000287527.jpg', '000000365207.jpg', '000000068833.jpg', '000000499181.jpg', '000000521141.jpg', '000000434996.jpg', '000000281179.jpg', '000000214200.jpg']
-filenames = ['000000000009.jpg']
+filenames = ['000000427338.jpg', '000000424975.jpg', '000000120853.jpg', '000000099810.jpg', '000000370818.jpg', '000000016502.jpg', '000000416256.jpg', '000000338905.jpg', '000000423617.jpg',  '000000295138.jpg', '000000066523.jpg', '000000031269.jpg', '000000014439.jpg', '000000453584.jpg', '000000009914.jpg', '000000210230.jpg', '000000306136.jpg', '000000263425.jpg', '000000288042.jpg', '000000396526.jpg', '000000016598.jpg', '000000323799.jpg', '000000159282.jpg', '000000474078.jpg', '000000564280.jpg', '000000175387.jpg', '000000223959.jpg', '000000492110.jpg', '000000186345.jpg', '000000106757.jpg', '000000495732.jpg', '000000495054.jpg', '000000218249.jpg', '000000537964.jpg', '000000050165.jpg', '000000163746.jpg', '000000020247.jpg', '000000500565.jpg', '000000287527.jpg', '000000365207.jpg', '000000068833.jpg', '000000499181.jpg', '000000521141.jpg', '000000434996.jpg', '000000281179.jpg', '000000214200.jpg']
+# filenames = ['000000000009.jpg']
 
 
 # filenames = random.sample(os.listdir(val_path), 50)
@@ -293,14 +293,17 @@ for fname in filenames:
     conv_features = conv_features[0]
     # enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights
-    queries = queries[0]
-    print(queries[0][0])
-    print(queries[1][0])
-    print(queries[2][0])
-    print(queries[3][0])
-    print(queries[4][0])
-    print(queries[5][0])
+    queries = queries
+    print(dec_attn_weights.shape)
+    print(queries.shape)
     exit(0)
+    # print(queries[0][0])
+    # print(queries[1][0])
+    # print(queries[2][0])
+    # print(queries[3][0])
+    # print(queries[4][0])
+    # print(queries[5][0])
+    # exit(0)
     # print(dec_attn_weights[0].shape)
 
     # get the feature map shape
