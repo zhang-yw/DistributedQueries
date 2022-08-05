@@ -300,8 +300,8 @@ for fname in filenames:
     shape = f_map.tensors.shape[-2:]
     # and reshape the self-attention to a more interpretable shape
     sattn = enc_attn_weights[0].reshape(shape + shape)
-    print("Reshaped self-attention:", sattn.shape)
-    exit(0)
+    # print("Reshaped self-attention:", sattn.shape)
+    # exit(0)
     # dec_attn_weights = dec_attn_weights
     # queries = queries
     # print(len(dec_attn_weights))
@@ -373,8 +373,8 @@ for fname in filenames:
                 ax.set_title(f"output")
                 ax.axis('off')
             else:
-                ax.imshow(dec_attn_weights[7-row][0,col-3,:].view(h, w))
-                ax.set_title(f"Layer {7-row}, Query {col-3}")
+                ax.imshow(sattn[..., target[col-3][1], target[col-3][0]])
+                ax.set_title(f"encoder")
                 ax.axis('off')
     fig.tight_layout()
     plt.savefig(os.path.join(save_path, fname))
