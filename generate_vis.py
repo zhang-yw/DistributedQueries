@@ -308,6 +308,7 @@ for fname in filenames:
     # print(queries[5][0])
     # exit(0)
     # print(dec_attn_weights[0].shape)
+    query_embedding = model.query_embed.weights
 
     # get the feature map shape
     h, w = conv_features['0'].tensors.shape[-2:]
@@ -317,13 +318,18 @@ for fname in filenames:
     # print(dec_attn_weights[5].shape)
     # print(outputs['pred_hms'][0].view(h,w).shape)
 
-    fig, axs = plt.subplots(ncols=12, nrows=7, squeeze=False, figsize=(60, 30))
+    fig, axs = plt.subplots(ncols=12, nrows=8, squeeze=False, figsize=(60, 30))
     colors = COLORS * 100
 
-    for row in range(7):
+    for row in range(8):
         for col in range(12):
             ax = axs[row][col]
             if row == 0 and col >=3:
+                ax.imshow(query_embedding[col-3,:].view(16, 16))
+                ax.set_title(f"PosEmbed {col-3}")
+                ax.axis('off')
+                continue
+            if row == 1 and col >=3:
                 ax.imshow(queries[0][5,0,col-3,:].view(16, 16))
                 ax.set_title(f"FinalQuery {col-3}")
                 ax.axis('off')
@@ -368,8 +374,8 @@ for fname in filenames:
                 ax.set_title(f"output")
                 ax.axis('off')
             else:
-                ax.imshow(dec_attn_weights[6-row][0,col-3,:].view(h, w))
-                ax.set_title(f"Layer {6-row}, Query {col-3}")
+                ax.imshow(dec_attn_weights[7-row][0,col-3,:].view(h, w))
+                ax.set_title(f"Layer {7-row}, Query {col-3}")
                 ax.axis('off')
     fig.tight_layout()
     plt.savefig(os.path.join(save_path, fname))
