@@ -308,7 +308,7 @@ for fname in filenames:
     # print(queries[5][0])
     # exit(0)
     # print(dec_attn_weights[0].shape)
-    query_embedding = model.query_embed.weights
+    query_embedding = model.query_embed.weight
 
     # get the feature map shape
     h, w = conv_features['0'].tensors.shape[-2:]
