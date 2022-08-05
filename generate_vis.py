@@ -335,7 +335,7 @@ for fname in filenames:
                 # keep = probas.max(-1).values > 0.5
 
                 # convert boxes from [0; 1] to image scales
-                bboxes_scaled = rescale_bboxes(target['boxes'], im.size)
+                bboxes_scaled = rescale_bboxes(target, im.size)
                 for (xmin, ymin, xmax, ymax), c in zip(bboxes_scaled.tolist(), colors):
                     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                             fill=False, color=c, linewidth=3))
