@@ -218,6 +218,7 @@ for fname in filenames:
     img, target = dataset.__getitem__(dataset.ids.index(img_id))
     img = img.unsqueeze(0)
     bs, c, h, w = img.shape
+    target = target['boxes']
     # print(img.shape)
     # exit(0)
     # outputs = model(img)
@@ -352,7 +353,6 @@ for fname in filenames:
                 # exit(0)
                 radius = gaussian_radius((math.ceil(h), math.ceil(w)))
                 radius = max(0, int(radius))
-                target = target['boxes']
                 hm = torch.zeros((h, w))
                 for j in range(target.size()[0]):
                     ct = np.array([target[j][0]*w, target[j][1]*h], dtype=np.float32)
