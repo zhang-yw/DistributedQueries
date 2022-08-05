@@ -331,7 +331,7 @@ for fname in filenames:
     colors = COLORS * 100
 
     for row in range(1):
-        for col in range(target.shape[0]):
+        for col in range(3+target.shape[0]):
             ax = axs[row][col]
             if col == 0:
                 ax.imshow(im)
@@ -373,7 +373,7 @@ for fname in filenames:
                 ax.set_title(f"output")
                 ax.axis('off')
             else:
-                ax.imshow(sattn[..., target[col-3,1], target[col-3,0]])
+                ax.imshow(sattn[..., target[col-3,1], target[col-3,0]],cmap='cividis', interpolation='nearest')
                 ax.set_title(f"encoder")
                 ax.axis('off')
     fig.tight_layout()
