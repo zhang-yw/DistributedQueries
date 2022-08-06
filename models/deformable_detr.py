@@ -521,7 +521,7 @@ class SetCriterion(nn.Module):
         device = outputs['pred_hms'].device
         hms = torch.stack(hms).unsqueeze(1).to(device)
         # hms = hms.transpose(2,3)
-        print(outputs['pred_hms'][0])
+        # print(outputs['pred_hms'][0])
 
 
         losses = {'loss_hm': self._neg_loss(outputs['pred_hms'], hms)}
