@@ -187,7 +187,8 @@ class DeformableDETR(nn.Module):
         outputs_coords = []
         outputs_hms = []
         bs, c, h, w = src.shape
-        print(torch.max(memory) - torch.min(memory))
+        sum_memory =  torch.sum(memory[0].view(h,w,self.hidden_dim), dim = 2)
+        print(torch.max(sum_memory) - torch.min(sum_memory))
         for lvl in range(hs.shape[0]):
             # if lvl == 0:
             #     reference = init_reference
