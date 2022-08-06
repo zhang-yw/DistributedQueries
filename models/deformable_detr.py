@@ -187,6 +187,7 @@ class DeformableDETR(nn.Module):
         outputs_coords = []
         outputs_hms = []
         bs, c, h, w = src.shape
+        print(torch.max(memory) - torch.min(memory))
         for lvl in range(hs.shape[0]):
             # if lvl == 0:
             #     reference = init_reference
@@ -522,7 +523,7 @@ class SetCriterion(nn.Module):
         hms = torch.stack(hms).unsqueeze(1).to(device)
         # hms = hms.transpose(2,3)
         # print(outputs['pred_hms'][0])
-        print(torch.max(outputs['pred_hms']) - torch.min(outputs['pred_hms']))
+        # print(torch.max(outputs['pred_hms']) - torch.min(outputs['pred_hms']))
 
 
         losses = {'loss_hm': self._neg_loss(outputs['pred_hms'], hms)}
