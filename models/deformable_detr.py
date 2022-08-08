@@ -86,13 +86,13 @@ class DeformableDETR(nn.Module):
         self.with_box_refine = with_box_refine
         self.two_stage = two_stage
 
-        self.num_params = hidden_dim*64
-        self.num_dynamic = 2
+        self.dim_dynamic = 256
+        self.num_params = hidden_dim*self.dim_dynamic
+        self.num_dynamic = 1
         self.dynamic_layer = nn.Linear(hidden_dim, self.num_dynamic * self.num_params)
         self.hidden_dim = hidden_dim
-        self.dim_dynamic = 64
         self.norm1 = nn.LayerNorm(self.dim_dynamic)
-        self.norm2 = nn.LayerNorm(self.hidden_dim)
+        # self.norm2 = nn.LayerNorm(self.hidden_dim)
         self.activation = nn.ReLU(inplace=True)
         self.out_layer = nn.Linear(hidden_dim, 1)
         # self.activation = nn.ReLU(inplace=False)
@@ -205,13 +205,13 @@ class DeformableDETR(nn.Module):
 
             parameters = self.dynamic_layer(hs[lvl][:,0,:].unsqueeze(1))
             param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
-            param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
+            # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
             features = torch.bmm(memory, param1)
             features = self.norm1(features)
             features = self.activation(features)
-            features = torch.bmm(features, param2)
-            features = self.norm2(features)
-            features = self.activation(features)
+            # features = torch.bmm(features, param2)
+            # features = self.norm2(features)
+            # features = self.activation(features)
             features = self.out_layer(features)
             scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
             outputs_hms.append(scores.view(bs, 1, h, w))
