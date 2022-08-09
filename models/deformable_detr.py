@@ -250,7 +250,7 @@ class DeformableDETR(nn.Module):
         # # outputs_coord = torch.stack(outputs_coords)
         # outputs_hms = torch.stack(outputs_hms)
 
-        out = {'pred_hms': outputs_hms[-1]}
+        # out = {'pred_hms': outputs_hms[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_hms)
         return out
