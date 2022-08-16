@@ -190,7 +190,7 @@ class DeformableDETR(nn.Module):
         q = self.num_queries
         sum_memory =  torch.sum(memory[0].view(h,w,self.hidden_dim), dim = 2)
         print(torch.max(sum_memory) - torch.min(sum_memory))
-        parameters = self.dynamic_layer(hs[-1])
+        parameters = self.dynamic_layer(hs[-1][:,0,:].unsqueeze(1))
         param1 = parameters.view(-1, self.hidden_dim, self.dim_dynamic)
         # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
         features = torch.bmm(memory, param1)
@@ -207,7 +207,7 @@ class DeformableDETR(nn.Module):
         # scores = torch.bmm(hs[-1], memory)
         # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
 
-        out = {'pred_hms': scores.reshape(bs, q, h, w)}
+        out = {'pred_hms': scores.reshape(bs, 1, h, w)}
 
         # for lvl in range(hs.shape[0]):
         #     # if lvl == 0:
