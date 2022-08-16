@@ -190,67 +190,67 @@ class DeformableDETR(nn.Module):
         q = self.num_queries
         sum_memory =  torch.sum(memory[0].view(h,w,self.hidden_dim), dim = 2)
         print(torch.max(sum_memory) - torch.min(sum_memory))
-        # parameters = self.dynamic_layer(hs[-1][:,0,:].unsqueeze(1))
-        # param1 = parameters.view(-1, self.hidden_dim, self.dim_dynamic)
-        # # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
-        # features = torch.bmm(memory, param1)
-        # features = self.norm1(features)
+        parameters = self.dynamic_layer(hs[-1])
+        param1 = parameters.view(-1, self.hidden_dim, self.dim_dynamic)
+        # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
+        features = torch.bmm(memory, param1)
+        features = self.norm1(features)
+        features = self.activation(features)
+        # features = torch.bmm(features, param2)
+        # features = self.norm2(features)
         # features = self.activation(features)
-        # # features = torch.bmm(features, param2)
-        # # features = self.norm2(features)
-        # # features = self.activation(features)
-        # features = self.out_layer(features)
-        # scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
-        # # outputs_hms.append(scores.view(bs, 1, h, w))
+        features = self.out_layer(features)
+        scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
+        # outputs_hms.append(scores.view(bs, 1, h, w))
 
 
-        # # scores = torch.bmm(hs[-1], memory)
-        # # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+        # scores = torch.bmm(hs[-1], memory)
+        # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
 
-        # out = {'pred_hms': scores.reshape(bs, 1, h, w)}
+        out = {'pred_hms': scores.reshape(bs, q, h, w)}
 
-        for lvl in range(hs.shape[0]):
-            # if lvl == 0:
-            #     reference = init_reference
-            # else:
-            #     reference = inter_references[lvl - 1]
-            # reference = inverse_sigmoid(reference)
-            # scroes = self.norm1(hs[lvl])
-            # memory_norm = self.norm2(memory)
+        # for lvl in range(hs.shape[0]):
+        #     # if lvl == 0:
+        #     #     reference = init_reference
+        #     # else:
+        #     #     reference = inter_references[lvl - 1]
+        #     # reference = inverse_sigmoid(reference)
+        #     # scroes = self.norm1(hs[lvl])
+        #     # memory_norm = self.norm2(memory)
 
 
-            # scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
-            # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
-            # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
+        #     # scores = torch.bmm(hs[lvl], memory.transpose(1, 2))
+        #     # scores = torch.clamp(scores.sigmoid_(), min=1e-4, max=1-1e-4)
+        #     # outputs_hms.append(scores[:,0,:].reshape(bs, 1, h, w))
 
-            parameters = self.dynamic_layer(hs[lvl][:,0,:].unsqueeze(1))
-            param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
-            # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
-            features = torch.bmm(memory, param1)
-            features = self.norm1(features)
-            features = self.activation(features)
-            # features = torch.bmm(features, param2)
-            # features = self.norm2(features)
-            # features = self.activation(features)
-            features = self.out_layer(features)
-            scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
-            outputs_hms.append(scores.view(bs, 1, h, w))
+        #     parameters = self.dynamic_layer(hs[lvl][:,0,:].unsqueeze(1))
+        #     param1 = parameters[:, :, :self.num_params].view(-1, self.hidden_dim, self.dim_dynamic)
+        #     # param2 = parameters[:, :, self.num_params:].view(-1, self.dim_dynamic, self.hidden_dim)
+        #     features = torch.bmm(memory, param1)
+        #     features = self.norm1(features)
+        #     features = self.activation(features)
+        #     # features = torch.bmm(features, param2)
+        #     # features = self.norm2(features)
+        #     # features = self.activation(features)
+        #     features = self.out_layer(features)
+        #     scores = torch.clamp(features.sigmoid_(), min=1e-4, max=1-1e-4)
+        #     outputs_hms.append(scores.view(bs, 1, h, w))
 
-            # outputs_class = self.class_embed[lvl](hs[lvl])
-            # tmp = self.bbox_embed[lvl](hs[lvl])
-            # if reference.shape[-1] == 4:
-            #     tmp += reference
-            # else:
-            #     assert reference.shape[-1] == 2
-            #     tmp[..., :2] += reference
-        #     outputs_coord = tmp.sigmoid()
-        #     outputs_classes.append(outputs_class)
-        #     outputs_coords.append(outputs_coord)
-        # outputs_class = torch.stack(outputs_classes)
-        # outputs_coord = torch.stack(outputs_coords)
-        outputs_hms = torch.stack(outputs_hms)
+        #     # outputs_class = self.class_embed[lvl](hs[lvl])
+        #     # tmp = self.bbox_embed[lvl](hs[lvl])
+        #     # if reference.shape[-1] == 4:
+        #     #     tmp += reference
+        #     # else:
+        #     #     assert reference.shape[-1] == 2
+        #     #     tmp[..., :2] += reference
+        # #     outputs_coord = tmp.sigmoid()
+        # #     outputs_classes.append(outputs_class)
+        # #     outputs_coords.append(outputs_coord)
+        # # outputs_class = torch.stack(outputs_classes)
+        # # outputs_coord = torch.stack(outputs_coords)
+        # outputs_hms = torch.stack(outputs_hms)
 
-        out = {'pred_hms': outputs_hms[-1]}
+        # out = {'pred_hms': outputs_hms[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_hms)
         return out
